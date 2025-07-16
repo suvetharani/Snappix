@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import axios from "axios"; // ✅ Import axios
 import {
   FaRegHeart,
   FaHeart,
@@ -9,42 +10,64 @@ import {
 } from "react-icons/fa";
 import { FiMoreHorizontal } from "react-icons/fi";
 
-export default function Post({ username, profile, image, caption }) {
-  const [liked, setLiked] = useState(false);
-  const [likesCount, setLikesCount] = useState(12);
+export default function Post({
+  postId,          // ✅ New: pass this from parent
+  username,
+  profile,
+  image,
+  caption,
+  currentUser,     // ✅ New: who is logged in
+  initialLikes = [], // ✅ Optionally pass initial likes/comments
+  initialComments = [],
+}) {
+  const [liked, setLiked] = useState(initialLikes.includes(currentUser));
+  const [likesCount, setLikesCount] = useState(initialLikes.length);
   const [comment, setComment] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [showComments, setShowComments] = useState(false);
+  const [comments, setComments] = useState(initialComments);
 
-  const [comments, setComments] = useState([
-    { id: 1, username: "alex99", text: "Awesome pic!", liked: false },
-    { id: 2, username: "emma_watson", text: "Love this!", liked: false },
-  ]);
+  // ✅ Connect to backend to like/unlike post
 
-  const handleLike = () => {
+// Inside Post component:
+
+const handleLike = async () => {
+  try {
+    await axios.post(`http://localhost:5000/api/posts/${postId}/like`, {
+      username: currentUser,
+    });
+
+    // Local state update for instant UI feedback:
     setLiked(!liked);
     setLikesCount((prev) => (liked ? prev - 1 : prev + 1));
-  };
+  } catch (err) {
+    console.error("Like failed:", err);
+  }
+};
 
-  const handleCommentPost = () => {
-    if (comment.trim() !== "") {
-      const newComment = {
-        id: Date.now(),
-        username: "you",
-        text: comment.trim(),
-        liked: false,
-      };
-      setComments([newComment, ...comments]);
-      setComment("");
-    }
-  };
+
+
+  // ✅ Connect to backend to post comment
+  const handleCommentPost = async () => {
+  if (comment.trim() === "") return;
+
+  try {
+    const res = await axios.post(`http://localhost:5000/api/posts/${postId}/comment`, {
+      username: currentUser,
+      text: comment.trim(),
+    });
+
+    // Add the new comment from the response
+    setComments([res.data, ...comments]);
+    setComment("");
+  } catch (err) {
+    console.error("Comment failed:", err);
+  }
+};
+
 
   const toggleCommentLike = (id) => {
-    setComments((prev) =>
-      prev.map((c) =>
-        c.id === id ? { ...c, liked: !c.liked } : c
-      )
-    );
+    // Optional: implement like for individual comment
   };
 
   const handleCopyLink = () => {
@@ -62,10 +85,7 @@ export default function Post({ username, profile, image, caption }) {
             alt={username}
             className="w-10 h-10 rounded-full mr-3 object-cover"
           />
-          <Link
-            to={`profile`}
-            className="font-semibold hover:underline"
-          >
+          <Link to={`profile`} className="font-semibold hover:underline">
             {username}
           </Link>
         </div>
@@ -165,24 +185,11 @@ export default function Post({ username, profile, image, caption }) {
       {showComments && (
         <div className="px-4 pb-2">
           {comments.map((c) => (
-            <div
-              key={c.id}
-              className="flex items-center justify-between mb-1"
-            >
+            <div key={c._id} className="flex items-center justify-between mb-1">
               <p>
                 <span className="font-semibold mr-1">{c.username}</span>
                 <span>{c.text}</span>
               </p>
-              <button
-                onClick={() => toggleCommentLike(c.id)}
-                className="text-sm"
-              >
-                {c.liked ? (
-                  <FaHeart className="text-red-500" />
-                ) : (
-                  <FaRegHeart />
-                )}
-              </button>
             </div>
           ))}
         </div>
