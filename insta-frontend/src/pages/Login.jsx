@@ -15,36 +15,42 @@ export default function AuthPage({ setIsLoggedIn }) {
     password: "",
   });
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    if (loginData.username && loginData.password) {
-      try {
-        const res = await axios.post("http://localhost:5000/api/auth/login", loginData);
-        console.log(res.data);
-        setIsLoggedIn(true); // success!
-      } catch (err) {
-        alert(err.response.data.message || "Login failed");
-      }
-    } else {
-      alert("Please fill in all fields.");
+const handleLogin = async (e) => {
+  e.preventDefault();
+  if (loginData.username && loginData.password) {
+    try {
+      const res = await axios.post("http://localhost:5000/api/auth/login", loginData);
+      localStorage.setItem("username", loginData.username);
+      setIsLoggedIn(true);  // this will switch routes
+    } catch (err) {
+      alert(err.response.data.message || "Login failed");
     }
-  };
+  } else {
+    alert("Please fill in all fields.");
+  }
+};
 
 
-  const handleSignup = async (e) => {
-    e.preventDefault();
-    if (signupData.fullname && signupData.username && signupData.password) {
-      try {
-        const res = await axios.post("http://localhost:5000/api/auth/signup", signupData);
-        alert("Signup successful! Now log in.");
-        setIsLogin(true);
-      } catch (err) {
-        alert(err.response.data.message || "Signup failed");
-      }
-    } else {
-      alert("Please fill in all fields.");
+
+
+
+
+const handleSignup = async (e) => {
+  e.preventDefault();
+  if (signupData.fullname && signupData.username && signupData.password) {
+    try {
+      const res = await axios.post("http://localhost:5000/api/auth/signup", signupData);
+      localStorage.setItem("username", signupData.username);
+      setIsLoggedIn(true);
+      window.location.href = "/profile"; // ✅ Redirect after signup
+    } catch (err) {
+      alert(err.response.data.message || "Signup failed");
     }
-  };
+  } else {
+    alert("Please fill in all fields.");
+  }
+};
+
 
 
   return (
@@ -63,7 +69,7 @@ export default function AuthPage({ setIsLoggedIn }) {
           <form onSubmit={handleLogin} className="flex flex-col gap-3">
             <input
               type="text"
-              placeholder="Username or email"
+              placeholder="Username"
               value={loginData.username}
               onChange={(e) =>
                 setLoginData({ ...loginData, username: e.target.value })
@@ -104,7 +110,7 @@ export default function AuthPage({ setIsLoggedIn }) {
             />
             <input
               type="text"
-              placeholder="Username or email"
+              placeholder="Username"
               value={signupData.username}
               onChange={(e) =>
                 setSignupData({ ...signupData, username: e.target.value })

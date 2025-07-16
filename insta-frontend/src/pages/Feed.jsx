@@ -1,35 +1,41 @@
+import { useEffect, useState } from "react";
+import axios from "axios";
 import Post from "../components/Post";
 import Stories from "../components/Stories";
 
-import profile from "../assets/profiles/profile.jpg";
-import post1 from "../assets/post1.jpg";
-import post2 from "../assets/post2.jpg";
-
 export default function Feed() {
-  const posts = [
-    {
-      username: "john_doe",
-      profile: profile,
-      image: post1,
-      caption: "Blossom!"
-    },
-    {
-      username: "jane_smith",
-      profile: profile,
-      image: post2,
-      caption: "Sunset Goals"
-    },
-  ];
+  const [posts, setPosts] = useState([]);
+
+  // Hardcode your logged-in user for now
+  const currentUser = "suvetharani.7";
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/api/posts");
+        setPosts(res.data);
+      } catch (err) {
+        console.error("Error fetching posts:", err);
+      }
+    };
+
+    fetchPosts();
+  }, []);
 
   return (
     <main className="w-full max-w-xl">
-      {posts.map((post, index) => (
+      <Stories /> {/* If you want stories */}
+      {posts.map((post) => (
         <Post
-          key={index}
+          key={post._id}
+          postId={post._id}
           username={post.username}
           profile={post.profile}
           image={post.image}
           caption={post.caption}
+          initialLikes={post.likes}
+          initialComments={post.comments}
+          currentUser={currentUser}
         />
       ))}
     </main>
