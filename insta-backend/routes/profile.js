@@ -5,8 +5,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-// Serve static files from /uploads
-// Make sure in your server.js:
+// ✅ Static for uploads:
 // app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const storage = multer.diskStorage({
@@ -26,26 +25,31 @@ const upload = multer({ storage });
 
 /**
  * GET /api/profile/:username
- * Fetch profile by username
+ * Return: { username, bio, profilePic, followers: [ { username, profilePic } ], following: [ { username, profilePic } ] }
  */
 router.get('/:username', async (req, res) => {
   const { username } = req.params;
 
   try {
-    const user = await User.findOne({ username })
-      .populate('followers', 'username profilePic')
-      .populate('following', 'username profilePic');
+    const user = await User.findOne({ username }).lean();
 
     if (!user) {
       return res.status(404).json({ message: 'User not found.' });
     }
 
+    // Lookup followers by username
+    const followers = await User.find({ username: { $in: user.followers } })
+      .select('username profilePic -_id');
+
+    const following = await User.find({ username: { $in: user.following } })
+      .select('username profilePic -_id');
+
     res.json({
       username: user.username,
       bio: user.bio,
       profilePic: user.profilePic,
-      followers: user.followers,
-      following: user.following
+      followers,
+      following
     });
 
   } catch (err) {
@@ -54,10 +58,9 @@ router.get('/:username', async (req, res) => {
   }
 });
 
-
 /**
  * PUT /api/profile/update
- * Update profile bio + picture
+ * Update bio & pic
  */
 router.put('/update', upload.single('profilePic'), async (req, res) => {
   const { username, bio } = req.body;
@@ -79,6 +82,7 @@ router.put('/update', upload.single('profilePic'), async (req, res) => {
     }
 
     res.json({ message: "Profile updated!", user });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error", error: err.message });
@@ -87,13 +91,15 @@ router.put('/update', upload.single('profilePic'), async (req, res) => {
 
 /**
  * POST /api/profile/follow
- * Follow or unfollow a user
- * Body: { username: userToFollow, follower: loggedInUser }
+ * Body: { username: userToFollow, follower: yourUsername }
  */
 router.post('/follow', async (req, res) => {
   const { username, follower } = req.body;
 
   try {
+    // `username` is the target user to follow/unfollow
+    // `follower` is the logged-in user who wants to follow/unfollow
+
     const userToFollow = await User.findOne({ username });
     const followerUser = await User.findOne({ username: follower });
 
@@ -104,11 +110,11 @@ router.post('/follow', async (req, res) => {
     const isAlreadyFollowing = userToFollow.followers.includes(follower);
 
     if (isAlreadyFollowing) {
-      // Unfollow
+      // 🔴 Unfollow logic
       userToFollow.followers = userToFollow.followers.filter(name => name !== follower);
       followerUser.following = followerUser.following.filter(name => name !== username);
     } else {
-      // Follow
+      // 🟢 Follow logic
       userToFollow.followers.push(follower);
       followerUser.following.push(username);
     }
@@ -127,9 +133,6 @@ router.post('/follow', async (req, res) => {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
-
-
-
 
 
 module.exports = router;
