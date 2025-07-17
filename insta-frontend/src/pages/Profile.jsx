@@ -5,8 +5,10 @@ import { FaCog, FaPlus, FaTimes, FaTrash } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import Picker from "@emoji-mart/react";
 import data from "@emoji-mart/data";
+import { useNavigate } from 'react-router-dom';
 
 export default function Profile() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("Posts");
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -65,12 +67,13 @@ const handleFollow = async () => {
     });
 
     setIsFollowing(!isFollowing);
-    // Optionally: update user.followers with new list:
+    // ✅ Update followers in local state too
     setUser(prev => ({ ...prev, followers: res.data.followers }));
   } catch (err) {
     console.error("Follow error:", err);
   }
 };
+
 
 
 
@@ -126,8 +129,8 @@ useEffect(() => {
       const res = await axios.get(`http://localhost:5000/api/profile/${username}`);
       setUser(res.data);
 
-      // ✅ Check if the logged-in user is following this profile:
-setIsFollowing(res.data.followers && res.data.followers.includes(loggedInUsername));
+      // ✅ THIS LINE must match your backend:
+setIsFollowing(res.data.followers.some(f => f.username === loggedInUsername));
 
       const postsRes = await axios.get(`http://localhost:5000/api/posts/${username}`);
       setPosts(postsRes.data);
@@ -140,6 +143,7 @@ setIsFollowing(res.data.followers && res.data.followers.includes(loggedInUsernam
 
   fetchProfile();
 }, [username]);
+
 
   if (loading) return <div className="text-center p-10">Loading...</div>;
   if (!user) return <div className="text-center p-10 text-red-500">User not found.</div>;
@@ -454,40 +458,75 @@ setIsFollowing(res.data.followers && res.data.followers.includes(loggedInUsernam
       )}
       {/* Followers Modal */}
 {showFollowers && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-    <div className="bg-white p-4 rounded shadow-md w-80">
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white p-6 rounded shadow-md w-80">
       <h3 className="text-lg font-semibold mb-4">Followers</h3>
       {user.followers.length === 0 ? (
-        <p>No followers yet.</p>
+        <p className="text-gray-500">No followers yet.</p>
       ) : (
-        <ul>
-          {user.followers.map((u, i) => (
-            <li key={i}>{u}</li>
+        <ul className="space-y-2">
+          {user.followers.map(f => (
+            <li
+              key={f.username}
+              onClick={() => navigate(`/profile/${f.username}`)}
+              className="flex items-center gap-2 p-2 cursor-pointer hover:bg-gray-100 rounded"
+            >
+              <img
+                src={`http://localhost:5000${f.profilePic}`}
+                alt={f.username}
+                className="w-8 h-8 rounded-full object-cover"
+              />
+              <span>{f.username}</span>
+            </li>
           ))}
         </ul>
+
       )}
-      <button onClick={() => setShowFollowers(false)}>Close</button>
+      <button
+        onClick={() => setShowFollowers(false)}
+        className="mt-4 px-4 py-2 bg-gray-200 rounded"
+      >
+        Close
+      </button>
     </div>
   </div>
 )}
 
 {showFollowing && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-    <div className="bg-white p-4 rounded shadow-md w-80">
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white p-6 rounded shadow-md w-80">
       <h3 className="text-lg font-semibold mb-4">Following</h3>
       {user.following.length === 0 ? (
-        <p>Not following anyone yet.</p>
+        <p className="text-gray-500">Not following anyone yet.</p>
       ) : (
-        <ul>
-          {user.following.map((u, i) => (
-            <li key={i}>{u}</li>
+        <ul className="space-y-4">
+          {user.following.map((f, i) => (
+            <li
+              key={i}
+              onClick={() => navigate(`/profile/${f.username}`)}
+              className="flex items-center gap-3 p-2 cursor-pointer hover:bg-gray-100 rounded"
+            >
+              <img
+                src={f.profilePic ? `http://localhost:5000${f.profilePic}` : "https://via.placeholder.com/40"}
+                alt={f.username}
+                className="w-10 h-10 rounded-full object-cover border"
+              />
+              <span>{f.username}</span>
+            </li>
           ))}
+
         </ul>
       )}
-      <button onClick={() => setShowFollowing(false)}>Close</button>
+      <button
+        onClick={() => setShowFollowing(false)}
+        className="mt-4 px-4 py-2 bg-gray-200 rounded"
+      >
+        Close
+      </button>
     </div>
   </div>
 )}
+
 
       <footer className="text-xs text-gray-500 text-center space-y-2 mb-10">
         <div className="flex flex-wrap justify-center gap-4">
