@@ -6,6 +6,8 @@ import { Link } from "react-router-dom";
 import Picker from "@emoji-mart/react";
 import data from "@emoji-mart/data";
 import { useNavigate } from 'react-router-dom';
+import { FaEllipsisH, FaHeart, FaRegHeart, FaBookmark, FaRegBookmark } from "react-icons/fa";
+
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -30,9 +32,11 @@ export default function Profile() {
   const loggedInUserId = localStorage.getItem("userId");
   const [showFollowers, setShowFollowers] = useState(false);
   const [showFollowing, setShowFollowing] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
 
 
-  
   const handleUploadPost = async () => {
     if (!selectedFile) return;
 
@@ -79,25 +83,29 @@ const handleFollow = async () => {
 
 
 
-  const handlePostComment = async () => {
-    if (commentInput.trim() === "") return;
+const handlePostComment = async () => {
+  try {
+    const loggedInUsername = localStorage.getItem("username");
 
-    try {
-      await axios.post(`http://localhost:5000/api/posts/${selectedPost._id}/comments`, {
-        username: user.username,
-        text: commentInput.trim(),
-      });
+    const res = await axios.post(`http://localhost:5000/api/posts/${selectedPost._id}/comments`, {
+      username: loggedInUsername,
+      text: commentInput,
+    });
 
-      const res = await axios.get(`http://localhost:5000/api/posts/single/${selectedPost._id}`);
-      setSelectedPost(res.data);
+    // Update post comments with new comment
+    setSelectedPost((prev) => ({
+      ...prev,
+      comments: [...prev.comments, res.data],
+    }));
 
-      setCommentInput("");
-      setIsPostDisabled(true);
-    } catch (err) {
-      console.error("Failed to post comment:", err);
-      alert("Error posting comment");
-    }
-  };
+    setCommentInput("");
+    setIsPostDisabled(true);
+  } catch (err) {
+    console.error("Error posting comment:", err);
+    alert("Failed to post comment");
+  }
+};
+
 
   const handleDeletePost = async () => {
     try {
@@ -189,15 +197,13 @@ setIsFollowing(res.data.followers.some(f => f.username === loggedInUsername));
 
           <div className="flex gap-6 mb-2">
             <p><span>{posts.length}</span> posts</p>
-<p onClick={() => setShowFollowers(true)}>
-  <span className="font-semibold">{user.followers?.length || 0}</span> followers
-</p>
+            <p onClick={() => setShowFollowers(true)}>
+              <span className="font-semibold">{user.followers?.length || 0}</span> followers
+            </p>
 
-<p onClick={() => setShowFollowing(true)}>
-  <span className="font-semibold">{user.following?.length || 0}</span> following
-</p>
-
-
+            <p onClick={() => setShowFollowing(true)}>
+              <span className="font-semibold">{user.following?.length || 0}</span> following
+            </p>
           </div>
 
           <p>{user.bio || "Add a bio!"}</p>
@@ -260,22 +266,45 @@ setIsFollowing(res.data.followers.some(f => f.username === loggedInUsername));
       {selectedPost && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded shadow-md flex flex-col md:flex-row w-full max-w-4xl relative">
-            <div className="absolute top-2 right-2 flex gap-4">
-              <button
-                onClick={() => setShowDeleteConfirm(true)}
-                className="text-xl text-red-600 hover:text-red-800"
-                title="Delete Post"
-              >
-                <FaTrash />
-              </button>
-              <button
-                onClick={() => setSelectedPost(null)}
-                className="text-2xl font-bold text-gray-500 hover:text-black"
-                title="Close"
-              >
-                <FaTimes />
-              </button>
-            </div>
+
+<div className="absolute top-2 right-2">
+  <div className="relative">
+    <button
+      onClick={() => setShowDropdown(prev => !prev)}
+      className="text-2xl text-gray-700 hover:text-black"
+      title="Options"
+    >
+      <FaEllipsisH />
+    </button>
+
+{showDropdown && (
+  <div className="absolute right-0 mt-2 w-32 bg-white border rounded shadow-lg z-50">
+    {selectedPost.username === localStorage.getItem("username") && (
+      <button
+        onClick={() => {
+          setShowDeleteConfirm(true);
+          setShowDropdown(false);
+        }}
+        className="w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600"
+      >
+        Delete
+      </button>
+    )}
+    <button
+      onClick={() => {
+        setSelectedPost(null);
+        setShowDropdown(false);
+      }}
+      className="w-full text-left px-4 py-2 hover:bg-gray-100"
+    >
+      Cancel
+    </button>
+  </div>
+)}
+
+  </div>
+</div>
+
 
             <img
               src={`http://localhost:5000${selectedPost.fileUrl}`}
@@ -298,6 +327,26 @@ setIsFollowing(res.data.followers.some(f => f.username === loggedInUsername));
                   <p className="text-gray-400 text-sm">No comments yet.</p>
                 )}
               </div>
+<div className="flex items-center justify-between px-4 py-2">
+  {/* Like Button */}
+  <button
+    className={`text-xl transition-colors duration-200 ${
+      isLiked ? "text-red-500" : "text-gray-600"
+    }`}
+    onClick={() => setIsLiked(!isLiked)}
+  >
+    {isLiked ? <FaHeart /> : <FaRegHeart />}
+  </button>
+
+  {/* Save Button */}
+  <button
+    className="text-xl text-gray-600 hover:opacity-80"
+    onClick={() => setIsSaved(!isSaved)}
+  >
+    {isSaved ? <FaBookmark /> : <FaRegBookmark />}
+  </button>
+</div>
+
 
               <div className="flex items-center border-t pt-2 relative">
                 <button
