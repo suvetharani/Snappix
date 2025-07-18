@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios"; // ✅ Import axios
+import axios from "axios";
 import {
   FaRegHeart,
   FaHeart,
@@ -11,64 +11,64 @@ import {
 import { FiMoreHorizontal } from "react-icons/fi";
 
 export default function Post({
-  postId,          // ✅ New: pass this from parent
+  postId,
   username,
   profile,
   image,
   caption,
-  currentUser,     // ✅ New: who is logged in
-  initialLikes = [], // ✅ Optionally pass initial likes/comments
+  currentUser,
+  initialLikes = [],
   initialComments = [],
 }) {
   const [liked, setLiked] = useState(initialLikes.includes(currentUser));
   const [likesCount, setLikesCount] = useState(initialLikes.length);
-  const [comment, setComment] = useState("");
+
   const [menuOpen, setMenuOpen] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState(initialComments);
+  const [commentInput, setCommentInput] = useState("");
+  const commentBoxRef = useRef();
 
-  // ✅ Connect to backend to like/unlike post
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (commentBoxRef.current && !commentBoxRef.current.contains(e.target)) {
+        setShowComments(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
-// Inside Post component:
-
-const handleLike = async () => {
-  try {
-    await axios.post(`http://localhost:5000/api/posts/${postId}/like`, {
-      username: currentUser,
-    });
-
-    // Local state update for instant UI feedback:
-    setLiked(!liked);
-    setLikesCount((prev) => (liked ? prev - 1 : prev + 1));
-  } catch (err) {
-    console.error("Like failed:", err);
-  }
-};
-
-
-
-  // ✅ Connect to backend to post comment
-  const handleCommentPost = async () => {
-  if (comment.trim() === "") return;
-
-  try {
-    const res = await axios.post(`http://localhost:5000/api/posts/${postId}/comment`, {
-      username: currentUser,
-      text: comment.trim(),
-    });
-
-    // Add the new comment from the response
-    setComments([res.data, ...comments]);
-    setComment("");
-  } catch (err) {
-    console.error("Comment failed:", err);
-  }
-};
-
-
-  const toggleCommentLike = (id) => {
-    // Optional: implement like for individual comment
+  const handleLike = async () => {
+    try {
+      await axios.post(`http://localhost:5000/api/posts/${postId}/like`, {
+        username: currentUser,
+      });
+      setLiked(!liked);
+      setLikesCount((prev) => (liked ? prev - 1 : prev + 1));
+    } catch (err) {
+      console.error("Like failed:", err);
+    }
   };
+
+const handlePostComment = async () => {
+  try {
+    if (!commentInput.trim()) return;
+
+    const res = await axios.post(`http://localhost:5000/api/posts/${postId}/comments`, {
+      username: currentUser,
+      text: commentInput.trim(),
+    });
+
+    setComments((prev) => [...prev, res.data]);
+    setCommentInput("");
+    setShowComments(true); // <-- force dropdown to stay open and refresh
+  } catch (err) {
+    console.error("Error posting comment:", err);
+    alert("Failed to post comment");
+  }
+};
+
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -85,19 +85,16 @@ const handleLike = async () => {
             alt={username}
             className="w-10 h-10 rounded-full mr-3 object-cover"
           />
-          <Link to={`profile`} className="font-semibold hover:underline">
+          <Link to={`/profile/${username}`} className="font-semibold hover:underline">
             {username}
           </Link>
         </div>
-
-        {/* 3 Dots */}
         <button
           onClick={() => setMenuOpen(!menuOpen)}
           className="text-2xl hover:bg-gray-100 p-1 rounded-full"
         >
           <FiMoreHorizontal />
         </button>
-
         {menuOpen && (
           <div className="absolute top-12 right-4 bg-white border rounded shadow z-50 w-48">
             <button
@@ -151,11 +148,7 @@ const handleLike = async () => {
       <div className="flex justify-between items-center px-4 py-2">
         <div className="flex gap-4 text-2xl">
           <button onClick={handleLike} className="hover:scale-110">
-            {liked ? (
-              <FaHeart className="text-red-500" />
-            ) : (
-              <FaRegHeart />
-            )}
+            {liked ? <FaHeart className="text-red-500" /> : <FaRegHeart />}
           </button>
           <button
             onClick={() => setShowComments(!showComments)}
@@ -176,43 +169,50 @@ const handleLike = async () => {
       {/* Post Caption */}
       <div className="px-4 pb-2">
         <p className="font-semibold">
-          {username}{" "}
-          <span className="font-normal text-gray-800">{caption}</span>
+          {username} <span className="font-normal text-gray-800">{caption}</span>
         </p>
       </div>
 
-      {/* Comments Section */}
+      {/* Dropdown Comments */}
       {showComments && (
-        <div className="px-4 pb-2">
-          {comments.map((c) => (
-            <div key={c._id} className="flex items-center justify-between mb-1">
-              <p>
-                <span className="font-semibold mr-1">{c.username}</span>
-                <span>{c.text}</span>
-              </p>
-            </div>
-          ))}
+        <div
+          ref={commentBoxRef}
+          className="absolute top-12 right-2 z-40 bg-white border rounded-md shadow-lg w-80 max-h-96 overflow-y-auto p-4"
+        >
+          <h4 className="font-semibold mb-2">Comments</h4>
+          <div className="space-y-2">
+            {comments.length > 0 ? (
+              comments.map((c) => (
+                <p key={c._id}>
+                  <span className="font-semibold">{c.username}: </span>
+                  {c.text}
+                </p>
+              ))
+            ) : (
+              <p className="text-gray-500">No comments yet</p>
+            )}
+          </div>
+          <div className="flex items-center mt-4 border-t pt-2">
+<input
+  type="text"
+  placeholder="Add a comment..."
+  value={commentInput}
+  onChange={(e) => setCommentInput(e.target.value)}
+  className="w-full text-sm focus:outline-none"
+/>
+<button
+  onClick={handlePostComment}
+  disabled={commentInput.trim() === ""}
+  className={`ml-2 text-sm font-semibold ${
+    commentInput.trim() !== "" ? "text-blue-500" : "text-gray-400"
+  }`}
+>
+  Post
+</button>
+
+          </div>
         </div>
       )}
-
-      {/* Comment Input */}
-      <div className="flex items-center justify-between px-4 pb-4 border-t pt-2">
-        <input
-          type="text"
-          placeholder="Add a comment..."
-          value={comment}
-          onChange={(e) => setComment(e.target.value)}
-          className="w-full focus:outline-none py-1"
-        />
-        {comment.trim() !== "" && (
-          <button
-            onClick={handleCommentPost}
-            className="text-blue-500 font-semibold ml-2"
-          >
-            Post
-          </button>
-        )}
-      </div>
     </div>
   );
-}
+}  

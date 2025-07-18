@@ -67,27 +67,56 @@ router.get("/single/:id", async (req, res) => {
 // ✅ Get all posts by username
 
 // ✅ Add a comment to a post
-router.post("/:id/comments", async (req, res) => {
+// ✅ Like or unlike a comment
+router.post("/:postId/comments/:commentId/like", async (req, res) => {
+  const { username } = req.body;
+  const { postId, commentId } = req.params;
+
   try {
-    const { username, text } = req.body;
-
-    if (!text || !username) {
-      return res.status(400).json({ msg: "Username and comment text are required" });
-    }
-
-    const post = await Post.findById(req.params.id);
+    const post = await Post.findById(postId);
     if (!post) return res.status(404).json({ msg: "Post not found" });
 
-    post.comments.push({ username, text });
-    await post.save();
+    const comment = post.comments.id(commentId);
+    if (!comment) return res.status(404).json({ msg: "Comment not found" });
 
-    console.log(`✅ Comment added by ${username} on post ${req.params.id}`);
-    res.status(201).json(post);
+    const index = comment.likes.indexOf(username);
+    if (index === -1) {
+      comment.likes.push(username); // like
+    } else {
+      comment.likes.splice(index, 1); // unlike
+    }
+
+    await post.save();
+    res.status(200).json(comment);
   } catch (err) {
-    console.error("Error adding comment:", err);
-    res.status(500).json({ msg: "Server error adding comment" });
+    console.error("Error liking comment:", err);
+    res.status(500).json({ msg: "Server error liking comment" });
   }
 });
+
+// ✅ Reply to a comment
+router.post("/:postId/comments/:commentId/reply", async (req, res) => {
+  const { username, text } = req.body;
+  const { postId, commentId } = req.params;
+
+  try {
+    const post = await Post.findById(postId);
+    if (!post) return res.status(404).json({ msg: "Post not found" });
+
+    const comment = post.comments.id(commentId);
+    if (!comment) return res.status(404).json({ msg: "Comment not found" });
+
+    comment.replies.push({ username, text });
+    await post.save();
+
+    res.status(201).json(comment.replies);
+  } catch (err) {
+    console.error("Error replying to comment:", err);
+    res.status(500).json({ msg: "Server error replying to comment" });
+  }
+});
+
+
 
 // ✅ Delete a post by ID
 // ✅ Delete a post
