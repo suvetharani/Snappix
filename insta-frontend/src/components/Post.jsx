@@ -121,6 +121,33 @@ const handleCommentLike = async (commentId) => {
   }
 };
 
+const handleReplyLike = async (commentId, replyId) => {
+  try {
+    const res = await axios.patch(
+      `http://localhost:5000/api/posts/${postId}/comments/${commentId}/replies/${replyId}/like`,
+      { userId: currentUser }
+    );
+
+    setComments((prevComments) =>
+      prevComments.map((comment) => {
+        if (comment._id === commentId) {
+          return {
+            ...comment,
+            replies: comment.replies.map((reply) =>
+              reply._id === replyId ? { ...reply, likes: res.data.likes } : reply
+            ),
+          };
+        }
+        return comment;
+      })
+    );
+  } catch (error) {
+    console.error("Error liking reply:", error);
+  }
+};
+
+
+
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -227,109 +254,158 @@ const handleCommentLike = async (commentId) => {
 
       {/* Dropdown Comments */}
       {showComments && (
-        <div
-          ref={commentBoxRef}
-          className="absolute top-12 right-2 z-40 bg-white border rounded-md shadow-lg w-80 max-h-96 overflow-y-auto p-4"
-        >
-          <h4 className="font-semibold mb-2">Comments</h4>
-          <div className="space-y-2">
-{comments.length > 0 ? (
+  <div
+    ref={commentBoxRef}
+    className="absolute top-12 right-2 z-40 bg-white border rounded-md shadow-lg w-80 max-h-96 flex flex-col"
+  >
+    <h4 className="font-semibold px-4 pt-4">Comments</h4>
 
-  comments.map((c) => {
-    const isLiked = c.likes.includes(currentUser);
+    {/* 🟡 Scrollable comment list */}
+    <div className="overflow-y-auto flex-1 px-4 space-y-2">
+      {comments.length > 0 ? (
+        comments.map((c) => {
+          const isLiked = c.likes.includes(currentUser);
 
-    return (
-      <div key={c._id} className="mb-2">
-        <div className="flex items-start justify-between group">
-          <div>
-            <p>
-              <span className="font-semibold">{c.username}: </span>
-              {c.text}
-            </p>
-          </div>
+          return (
+            <div key={c._id} className="mb-2 relative">
+              <div className="flex items-start justify-between group">
+                <div>
+                  <p>
+                    <span className="font-semibold">{c.username}: </span>
+                    {c.text}
+                  </p>
+                </div>
+                <div className="flex flex-col items-center ml-2">
+                  <div className="flex items-start space-x-2 ml-2">
+                    <span
+                      className="text-xs text-blue-500 cursor-pointer"
+                      onClick={() => {
+                        setReplyTo(c._id);
+                        setCommentInput(`@${c.username} `);
+                        setShowComments(true);
+                      }}
+                    >
+                      Reply
+                    </span>
+                    <div className="flex flex-col items-center">
+                      <button onClick={() => handleCommentLike(c._id)}>
+                        {isLiked ? (
+                          <FaHeart className="text-red-500 text-sm" />
+                        ) : (
+                          <FaRegHeart className="text-sm" />
+                        )}
+                      </button>
+                      <span
+                        className="text-xs text-gray-600 cursor-pointer hover:underline"
+                        onClick={() =>
+                          setShowLikers((prev) => (prev === c._id ? null : c._id))
+                        }
+                      >
+                        {c.likes.length}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-          <div className="flex items-center space-x-2 ml-2">
-            <button onClick={() => handleCommentLike(c._id)}>
-              {isLiked ? (
-                <FaHeart className="text-red-500 text-sm" />
-              ) : (
-                <FaRegHeart className="text-sm" />
+              {/* Replies */}
+              {c.replies && c.replies.length > 0 && (
+                <div className="ml-4 mt-1 border-l border-gray-200 pl-3 space-y-2">
+                  {c.replies.map((r) => {
+                    const isReplyLiked = r.likes?.includes(currentUser);
+                    return (
+                      <div key={r._id}>
+                        <div className="flex items-start justify-between group">
+                          <p className="text-sm text-gray-700">
+                            <span className="font-semibold">{r.username}: </span>
+                            {r.text}
+                          </p>
+                          <div className="flex items-start space-x-2 ml-2">
+                            <span
+                              className="text-xs text-blue-500 cursor-pointer"
+                              onClick={() => {
+                                setReplyTo(c._id);
+                                setCommentInput(`@${r.username} `);
+                                setShowComments(true);
+                              }}
+                            >
+                              Reply
+                            </span>
+                            <div className="flex flex-col items-center">
+                              <button onClick={() => handleReplyLike(c._id, r._id)}>
+                                {isReplyLiked ? (
+                                  <FaHeart className="text-red-500 text-sm" />
+                                ) : (
+                                  <FaRegHeart className="text-sm" />
+                                )}
+                              </button>
+                              <span
+                                className="text-xs text-gray-600 cursor-pointer hover:underline"
+                                onClick={() =>
+                                  setShowLikers((prev) =>
+                                    prev === r._id ? null : r._id
+                                  )
+                                }
+                              >
+                                {r.likes?.length || 0}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {showLikers === r._id && r.likes?.length > 0 && (
+                          <div className="absolute top-6 right-6 bg-white border shadow-md rounded-md text-xs w-40 max-h-32 overflow-y-auto p-2 z-50">
+                            <p className="font-semibold mb-1">Liked by:</p>
+                            {r.likes.map((user, i) => (
+                              <p key={i}>{user}</p>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               )}
-            </button>
 
-            <span
-              className="text-xs text-gray-600 cursor-pointer hover:underline"
-              onClick={() => setShowLikers((prev) => (prev === c._id ? null : c._id))}
-            >
-              {c.likes.length}
-            </span>
+              {/* Likers dropdown */}
+              {showLikers === c._id && c.likes.length > 0 && (
+                <div className="absolute top-6 right-6 bg-white border shadow-md rounded-md text-xs w-40 max-h-32 overflow-y-auto p-2 z-50">
+                  <p className="font-semibold mb-1">Liked by:</p>
+                  {c.likes.map((user, i) => (
+                    <p key={i}>{user}</p>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })
+      ) : (
+        <p className="text-gray-500">No comments yet</p>
+      )}
+    </div>
 
-            <span
-              className="text-xs text-blue-500 cursor-pointer"
-              onClick={() => {
-                setReplyTo(c._id);
-                setCommentInput(`@${c.username} `);
-                setShowComments(true);
-              }}
-            >
-              Reply
-            </span>
-          </div>
-        </div>
-
-        {/* Replies under comment */}
-        {c.replies && c.replies.length > 0 && (
-          <div className="ml-4 mt-1 border-l border-gray-200 pl-3 space-y-1">
-            {c.replies.map((r) => (
-              <p key={r._id} className="text-sm text-gray-700">
-                <span className="font-semibold">{r.username}: </span>
-                {r.text}
-              </p>
-            ))}
-          </div>
-        )}
-
-        {/* Dropdown box for who liked */}
-        {showLikers === c._id && c.likes.length > 0 && (
-          <div className="absolute top-6 right-6 bg-white border shadow-md rounded-md text-xs w-40 max-h-32 overflow-y-auto p-2 z-50">
-            <p className="font-semibold mb-1">Liked by:</p>
-            {c.likes.map((user, i) => (
-              <p key={i}>{user}</p>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  })
-
-) : (
-  <p className="text-gray-500">No comments yet</p>
+    {/* 🟢 Input bar fixed at the bottom */}
+    <div className="flex items-center border-t px-4 py-2">
+      <input
+        type="text"
+        placeholder="Add a comment..."
+        value={commentInput}
+        onChange={(e) => setCommentInput(e.target.value)}
+        className="w-full text-sm focus:outline-none"
+      />
+      <button
+        onClick={handlePostComment}
+        disabled={commentInput.trim() === ""}
+        className={`ml-2 text-sm font-semibold ${
+          commentInput.trim() !== "" ? "text-blue-500" : "text-gray-400"
+        }`}
+      >
+        Post
+      </button>
+    </div>
+  </div>
 )}
 
-
-
-          </div>
-          <div className="flex items-center mt-4 border-t pt-2">
-<input
-  type="text"
-  placeholder="Add a comment..."
-  value={commentInput}
-  onChange={(e) => setCommentInput(e.target.value)}
-  className="w-full text-sm focus:outline-none"
-/>
-<button
-  onClick={handlePostComment}
-  disabled={commentInput.trim() === ""}
-  className={`ml-2 text-sm font-semibold ${
-    commentInput.trim() !== "" ? "text-blue-500" : "text-gray-400"
-  }`}
->
-  Post
-</button>
-
-          </div>
-        </div>
-      )}
     </div>
   );
 }  
