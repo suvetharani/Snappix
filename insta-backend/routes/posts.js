@@ -121,8 +121,33 @@ router.post('/:postId/comments/:commentId/like', async (req, res) => {
   }
 });
 
+// Reply to comment
+// ✅ Reply to a comment on a post
+router.post("/:postId/comments/:commentId/replies", async (req, res) => {
+  try {
+    const { username, text } = req.body;
+    const { postId, commentId } = req.params;
 
+    if (!text || !username) {
+      return res.status(400).json({ msg: "Username and reply text are required" });
+    }
 
+    const post = await Post.findById(postId);
+    if (!post) return res.status(404).json({ msg: "Post not found" });
+
+    const comment = post.comments.id(commentId);
+    if (!comment) return res.status(404).json({ msg: "Comment not found" });
+
+    comment.replies.push({ username, text });
+    await post.save();
+
+    const newReply = comment.replies[comment.replies.length - 1];
+    res.status(201).json(newReply);
+  } catch (err) {
+    console.error("❌ Error posting reply:", err);
+    res.status(500).json({ msg: "Server error posting reply" });
+  }
+});
 
 // ✅ Delete a post by ID
 // ✅ Delete a post
