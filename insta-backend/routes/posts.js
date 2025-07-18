@@ -4,6 +4,7 @@ const router = express.Router();
 const multer = require("multer");
 const fs = require("fs");
 const Post = require("../models/Post");
+const User = require("../models/User"); 
 
 // ✅ Ensure uploads folder exists
 const uploadPath = "uploads/";
@@ -64,15 +65,6 @@ router.get("/single/:id", async (req, res) => {
 });
 
 // ✅ Get all posts by username
-router.get("/:username", async (req, res) => {
-  try {
-    const posts = await Post.find({ username: req.params.username }).sort({ createdAt: -1 });
-    res.json(posts);
-  } catch (err) {
-    console.error("Error fetching user's posts:", err);
-    res.status(500).json({ msg: "Server error fetching user's posts" });
-  }
-});
 
 // ✅ Add a comment to a post
 router.post("/:id/comments", async (req, res) => {
@@ -107,6 +99,40 @@ router.delete("/:id", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ msg: "Error deleting post" });
+  }
+});
+// Get all posts from all users
+// ✅ Get all posts from all users (MOVE THIS UP ⬆️)
+router.get("/all", async (req, res) => {
+  try {
+    const posts = await Post.find().sort({ createdAt: -1 });
+
+    // Fetch profilePic for each post's username
+    const postsWithProfile = await Promise.all(
+      posts.map(async (post) => {
+        const user = await User.findOne({ username: post.username });
+        return {
+          ...post._doc,
+          profilePic: user?.profilePic || null, // Add profilePic to response
+        };
+      })
+    );
+
+    res.json(postsWithProfile);
+  } catch (err) {
+    console.error("Error fetching posts with profile:", err);
+    res.status(500).json({ msg: "Server error" });
+  }
+});
+
+// ✅ Get all posts by username (this stays after)
+router.get("/:username", async (req, res) => {
+  try {
+    const posts = await Post.find({ username: req.params.username }).sort({ createdAt: -1 });
+    res.json(posts);
+  } catch (err) {
+    console.error("Error fetching user's posts:", err);
+    res.status(500).json({ msg: "Server error fetching user's posts" });
   }
 });
 

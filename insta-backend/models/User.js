@@ -20,11 +20,12 @@ const UserSchema = new mongoose.Schema({
     type: String,
     default: "",
   },
-  profile: {
-    type: String, // stores profile picture path like `/uploads/...`
-    default: "",  // empty means no picture yet
+
+  profilePic: {
+    type: String,
+    default: "", // or null
   },
-  profilePic: String,
+
   followers: [String],  // store usernames directly
   following: [String],
 
