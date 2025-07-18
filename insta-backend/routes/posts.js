@@ -95,26 +95,32 @@ router.post("/:postId/comments/:commentId/like", async (req, res) => {
 });
 
 // ✅ Reply to a comment
-router.post("/:postId/comments/:commentId/reply", async (req, res) => {
-  const { username, text } = req.body;
+// Like/unlike a comment
+router.post('/:postId/comments/:commentId/like', async (req, res) => {
   const { postId, commentId } = req.params;
+  const { username, text } = req.body;
 
   try {
     const post = await Post.findById(postId);
-    if (!post) return res.status(404).json({ msg: "Post not found" });
-
     const comment = post.comments.id(commentId);
-    if (!comment) return res.status(404).json({ msg: "Comment not found" });
 
-    comment.replies.push({ username, text });
+    if (!comment) return res.status(404).send("Comment not found");
+
+    const alreadyLiked = comment.likes.includes(username);
+
+    if (alreadyLiked) {
+      comment.likes.pull(username); // Unlike
+    } else {
+      comment.likes.push(username); // Like
+    }
+
     await post.save();
-
-    res.status(201).json(comment.replies);
+    res.json(comment); // Return updated comment
   } catch (err) {
-    console.error("Error replying to comment:", err);
-    res.status(500).json({ msg: "Server error replying to comment" });
+    res.status(500).send("Server error");
   }
 });
+
 
 
 

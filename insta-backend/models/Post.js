@@ -8,13 +8,16 @@ const replySchema = new mongoose.Schema({
 });
 
 // ✅ Updated comment sub-schema with likes & replies
-const commentSchema = new mongoose.Schema({
-  username: { type: String, required: true },
-  text: { type: String, required: true },
-  likes: [{ type: String }], // usernames who liked this comment
-  replies: [replySchema], // embedded replies
-  createdAt: { type: Date, default: Date.now },
-});
+const commentSchema = new mongoose.Schema(
+  {
+    username: { type: String, required: true },
+    text: { type: String, required: true },
+    likes: [{ type: String }], // usernames who liked this comment
+    replies: [replySchema], // embedded replies
+    createdAt: { type: Date, default: Date.now },
+  },
+  { timestamps: true }
+);
 
 // ✅ Post schema with embedded comments
 const postSchema = new mongoose.Schema(
