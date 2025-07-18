@@ -78,11 +78,6 @@ const handleFollow = async () => {
   }
 };
 
-
-
-
-
-
 const handlePostComment = async () => {
   try {
     const loggedInUsername = localStorage.getItem("username");
