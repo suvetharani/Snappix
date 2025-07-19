@@ -187,24 +187,6 @@ const handleReplyLike = async (commentId, replyId) => {
             <button
               className="block w-full text-left px-4 py-2 hover:bg-gray-100"
               onClick={() => {
-                alert("Added to Favourites!");
-                setMenuOpen(false);
-              }}
-            >
-              Add to Favourite
-            </button>
-            <button
-              className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-              onClick={() => {
-                handleCopyLink();
-                setMenuOpen(false);
-              }}
-            >
-              Copy Link
-            </button>
-            <button
-              className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-              onClick={() => {
                 alert(`About ${username}'s account`);
                 setMenuOpen(false);
               }}
@@ -279,7 +261,12 @@ const handleReplyLike = async (commentId, replyId) => {
               <div className="flex items-start justify-between group">
                 <div>
                   <p>
-                    <span className="font-semibold">{c.username}: </span>
+<Link
+  to={`/profile/${c.username}`}
+  className="font-semibold hover:underline"
+>
+  {c.username}
+</Link>{`: `}
                     {c.text}
                   </p>
                 </div>
@@ -337,7 +324,12 @@ const handleReplyLike = async (commentId, replyId) => {
           <div key={r._id}>
             <div className="flex items-start justify-between group">
               <p className="text-sm text-gray-700">
-                <span className="font-semibold">{r.username}: </span>
+<Link
+  to={`/profile/${r.username}`}
+  className="font-semibold hover:underline"
+>
+  {r.username}
+</Link>{`: `}
                 {r.text}
               </p>
 
@@ -379,9 +371,16 @@ const handleReplyLike = async (commentId, replyId) => {
             {showLikers === r._id && r.likes?.length > 0 && (
               <div className="absolute top-6 right-6 bg-white border shadow-md rounded-md text-xs w-40 max-h-32 overflow-y-auto p-2 z-50">
                 <p className="font-semibold mb-1">Liked by:</p>
-                {r.likes.map((user, i) => (
-                  <p key={i}>{user}</p>
-                ))}
+{r.likes.map((user, i) => (
+  <Link
+    key={i}
+    to={`/profile/${user}`}
+    className="block text-blue-600 hover:underline"
+  >
+    {user}
+  </Link>
+))}
+
               </div>
             )}
           </div>
@@ -395,9 +394,16 @@ const handleReplyLike = async (commentId, replyId) => {
               {showLikers === c._id && c.likes.length > 0 && (
                 <div className="absolute top-6 right-6 bg-white border shadow-md rounded-md text-xs w-40 max-h-32 overflow-y-auto p-2 z-50">
                   <p className="font-semibold mb-1">Liked by:</p>
-                  {c.likes.map((user, i) => (
-                    <p key={i}>{user}</p>
-                  ))}
+{c.likes.map((user, i) => (
+  <Link
+    key={i}
+    to={`/profile/${user}`}
+    className="block text-blue-600 hover:underline"
+  >
+    {user}
+  </Link>
+))}
+
                 </div>
               )}
             </div>
