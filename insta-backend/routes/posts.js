@@ -5,6 +5,7 @@ const multer = require("multer");
 const fs = require("fs");
 const Post = require("../models/Post");
 const User = require("../models/User"); 
+const mongoose = require("mongoose");
 
 // ✅ Ensure uploads folder exists
 const uploadPath = "uploads/";
@@ -146,6 +147,35 @@ router.post("/:postId/comments/:commentId/replies", async (req, res) => {
   } catch (err) {
     console.error("❌ Error posting reply:", err);
     res.status(500).json({ msg: "Server error posting reply" });
+  }
+});
+
+router.patch("/:postId/comments/:commentId/replies/:replyId/like", async (req, res) => {
+  try {
+    const { userId } = req.body;
+    const { postId, commentId, replyId } = req.params;
+
+    const post = await Post.findById(postId);
+    if (!post) return res.status(404).json({ msg: "Post not found" });
+
+    const comment = post.comments.id(commentId);
+    if (!comment) return res.status(404).json({ msg: "Comment not found" });
+
+    const reply = comment.replies.id(replyId);
+    if (!reply) return res.status(404).json({ msg: "Reply not found" });
+
+    // Toggle like
+    if (!reply.likes.includes(userId)) {
+      reply.likes.push(userId);
+    } else {
+      reply.likes = reply.likes.filter((id) => id !== userId);
+    }
+
+    await post.save();
+    res.status(200).json({ likes: reply.likes });
+  } catch (err) {
+    console.error("❌ Error liking reply:", err);
+    res.status(500).json({ msg: "Server error while liking reply" });
   }
 });
 

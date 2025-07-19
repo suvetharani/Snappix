@@ -319,68 +319,74 @@ const handleReplyLike = async (commentId, replyId) => {
               {/* Replies */}
 {c.replies && c.replies.length > 0 && (
   <div className="ml-4 mt-1 border-l border-gray-200 pl-3 space-y-2">
-    {!visibleReplies[c._id] && c.replies.length > 1 && (
-      <span
-        onClick={() => toggleReplies(c._id)}
-        className="text-xs text-blue-500 cursor-pointer"
-      >
-        View all {c.replies.length} replies
-      </span>
-    )}
+    {/* Toggle Button */}
+    <span
+      onClick={() => toggleReplies(c._id)}
+      className="text-xs text-blue-500 cursor-pointer"
+    >
+      {visibleReplies[c._id]
+        ? `Hide replies`
+        : `View all ${c.replies.length} replies`}
+    </span>
 
-    {(visibleReplies[c._id] ? c.replies : [c.replies[0]]).map((r) => {
-      const isReplyLiked = r.likes?.includes(currentUser);
-      return (
-        <div key={r._id}>
-          <div className="flex items-start justify-between group">
-            <p className="text-sm text-gray-700">
-              <span className="font-semibold">{r.username}: </span>
-              {r.text}
-            </p>
+    {/* Replies List */}
+    {visibleReplies[c._id] &&
+      c.replies.map((r) => {
+        const isReplyLiked = r.likes?.includes(currentUser);
+        return (
+          <div key={r._id}>
+            <div className="flex items-start justify-between group">
+              <p className="text-sm text-gray-700">
+                <span className="font-semibold">{r.username}: </span>
+                {r.text}
+              </p>
 
-            <div className="flex items-start space-x-2 ml-2">
-              <span
-                className="text-xs text-blue-500 cursor-pointer"
-                onClick={() => {
-                  setReplyTo(c._id);
-                  setCommentInput(`@${r.username} `);
-                  setShowComments(true);
-                }}
-              >
-                Reply
-              </span>
-
-              <div className="flex flex-col items-center">
-                <button onClick={() => handleReplyLike(c._id, r._id)}>
-                  {isReplyLiked ? (
-                    <FaHeart className="text-red-500 text-sm" />
-                  ) : (
-                    <FaRegHeart className="text-sm" />
-                  )}
-                </button>
+              <div className="flex items-start space-x-2 ml-2">
                 <span
-                  className="text-xs text-gray-600 cursor-pointer hover:underline"
-                  onClick={() =>
-                    setShowLikers((prev) => (prev === r._id ? null : r._id))
-                  }
+                  className="text-xs text-blue-500 cursor-pointer"
+                  onClick={() => {
+                    setReplyTo(c._id);
+                    setCommentInput(`@${r.username} `);
+                    setShowComments(true);
+                  }}
                 >
-                  {r.likes?.length || 0}
+                  Reply
                 </span>
+
+                <div className="flex flex-col items-center">
+                  <button onClick={() => handleReplyLike(c._id, r._id)}>
+                    {isReplyLiked ? (
+                      <FaHeart className="text-red-500 text-sm" />
+                    ) : (
+                      <FaRegHeart className="text-sm" />
+                    )}
+                  </button>
+                  <span
+                    className="text-xs text-gray-600 cursor-pointer hover:underline"
+                    onClick={() =>
+                      setShowLikers((prev) =>
+                        prev === r._id ? null : r._id
+                      )
+                    }
+                  >
+                    {r.likes?.length || 0}
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
 
-          {showLikers === r._id && r.likes?.length > 0 && (
-            <div className="absolute top-6 right-6 bg-white border shadow-md rounded-md text-xs w-40 max-h-32 overflow-y-auto p-2 z-50">
-              <p className="font-semibold mb-1">Liked by:</p>
-              {r.likes.map((user, i) => (
-                <p key={i}>{user}</p>
-              ))}
-            </div>
-          )}
-        </div>
-      );
-    })}
+            {/* Likers Dropdown */}
+            {showLikers === r._id && r.likes?.length > 0 && (
+              <div className="absolute top-6 right-6 bg-white border shadow-md rounded-md text-xs w-40 max-h-32 overflow-y-auto p-2 z-50">
+                <p className="font-semibold mb-1">Liked by:</p>
+                {r.likes.map((user, i) => (
+                  <p key={i}>{user}</p>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
   </div>
 )}
 

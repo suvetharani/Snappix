@@ -4,8 +4,10 @@ const mongoose = require("mongoose");
 const replySchema = new mongoose.Schema({
   username: { type: String, required: true },
   text: { type: String, required: true },
+  likes: [{ type: String }], // ✅ Add this line
   createdAt: { type: Date, default: Date.now },
 });
+
 
 // Comment schema
 const commentSchema = new mongoose.Schema({
