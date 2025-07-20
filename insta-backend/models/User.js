@@ -25,10 +25,7 @@ const UserSchema = new mongoose.Schema({
   },
   followers: [String],
   following: [String],
-  savedPosts: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Post',
-  }],
+savedPosts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Post' }], 
 }, {
   timestamps: true  // ✅ Add this line
 });

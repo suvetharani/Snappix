@@ -134,5 +134,21 @@ router.post('/follow', async (req, res) => {
   }
 });
 
+/**
+ * GET /api/posts/:username/saved
+ * Return: { savedPosts: [postId1, postId2, ...] }
+ */
+router.get('/:username/saved', async (req, res) => {
+  const { username } = req.params;
+  try {
+    const user = await User.findOne({ username });
+    if (!user) return res.status(404).json({ error: "User not found" });
+    // Return the savedPosts array from the user document
+    res.json({ savedPosts: user.savedPosts.map(id => id.toString()) });
+  } catch (err) {
+    res.status(500).json({ error: "Server error while fetching saved posts" });
+  }
+});
+
 
 module.exports = router;

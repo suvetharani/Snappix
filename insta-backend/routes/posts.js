@@ -313,5 +313,61 @@ router.get("/:username", async (req, res) => {
   }
 });
 
+// Save or Unsave a post
+router.post('/:postId/save', async (req, res) => {
+  const { postId } = req.params;
+  const { username } = req.body;
+
+  try {
+    const user = await User.findOne({ username });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const post = await Post.findById(postId);
+    if (!post) return res.status(404).json({ message: "Post not found" });
+
+    const userIndex = user.savedPosts.findIndex(id => id.toString() === postId.toString());
+    const postIndex = post.savedBy.findIndex(u => u === username);
+
+    if (userIndex > -1) {
+      // Unsave post
+      user.savedPosts.splice(userIndex, 1);
+      if (postIndex > -1) {
+        post.savedBy.splice(postIndex, 1);
+      }
+    } else {
+      // Save post
+      user.savedPosts.push(postId.toString());
+      if (postIndex === -1) {
+        post.savedBy.push(username);
+      }
+    }
+
+    await user.save();
+    await post.save();
+    res.json({ message: "Saved posts updated", savedPosts: user.savedPosts });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+});
+
+
+
+// GET /api/users/:username/saved
+// GET saved posts of a user
+router.get('/:username/saved', async (req, res) => {
+  const { username } = req.params;
+
+  try {
+    const savedPosts = await Post.find({ savedBy: username });
+    const savedPostIds = savedPosts.map(post => post._id.toString());
+
+    res.json({ savedPosts: savedPostIds }); // 👈 Must match what frontend expects
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error while fetching saved posts" });
+  }
+});
+
 
 module.exports = router;
