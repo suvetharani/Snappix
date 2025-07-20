@@ -65,7 +65,94 @@ router.get("/single/:id", async (req, res) => {
   }
 });
 
+// like for a post
+router.post("/:id/like", async (req, res) => {
+  const { username } = req.body;
+
+  try {
+    const post = await Post.findById(req.params.id);
+
+    if (!post) return res.status(404).json({ message: "Post not found" });
+
+    if (post.likes.includes(username)) {
+      // Already liked → remove like
+      post.likes = post.likes.filter((u) => u !== username);
+    } else {
+      // Not liked yet → add like
+      post.likes.push(username);
+    }
+
+    await post.save();
+    res.status(200).json({ likes: post.likes.length });
+  } catch (err) {
+    res.status(500).json({ error: "Something went wrong" });
+  }
+});
+
+// Get list of usernames who liked a post
+// ✅ Get list of usernames who liked a post
+// ✅ Get list of usernames who liked a post
+// Get list of usernames who liked a post
+// GET /api/posts/:id/likers
+router.get('/:postId/likers', async (req, res) => {
+  try {
+    const { postId } = req.params;
+
+    const post = await Post.findById(postId);
+    if (!post) return res.status(404).json({ message: "Post not found." });
+
+    // Fetch usernames from likes array
+    const users = await User.find({ username: { $in: post.likes } })
+      .select('username profilePic -_id');
+
+    // Map to add full URL if needed
+    const likers = users.map(user => ({
+      username: user.username,
+      profilePic: user.profilePic
+        ? user.profilePic.startsWith('/uploads/')
+          ? `http://localhost:5000${user.profilePic}`
+          : `http://localhost:5000/uploads/${user.profilePic}`
+        : "http://localhost:5000/default-profile.png"
+    }));
+
+    res.json({ likers });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
 // ✅ Get all posts by username
+// ✅ Add a comment to a post
+router.post("/:postId/comments", async (req, res) => {
+  try {
+    const { username, text } = req.body;
+    const { postId } = req.params;
+
+    if (!username || !text) {
+      return res.status(400).json({ msg: "Username and comment text are required" });
+    }
+
+    const post = await Post.findById(postId);
+    if (!post) return res.status(404).json({ msg: "Post not found" });
+
+    const newComment = {
+      username,
+      text,
+      likes: [],
+      replies: [],
+      createdAt: new Date(),
+    };
+
+    post.comments.push(newComment);
+    await post.save();
+
+    res.status(201).json(post.comments[post.comments.length - 1]); // Return the new comment
+  } catch (err) {
+    console.error("❌ Error adding comment:", err);
+    res.status(500).json({ msg: "Server error adding comment" });
+  }
+});
 
 // ✅ Add a comment to a post
 // ✅ Like or unlike a comment

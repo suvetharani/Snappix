@@ -21,4 +21,15 @@ router.get("/users", async (req, res) => {
   }
 });
 
+// routes/userRoutes.js
+router.get('/:id', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select('username profilePicture createdAt');
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ message: 'User not found' });
+  }
+});
+
+
 module.exports = router;

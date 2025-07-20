@@ -1,7 +1,6 @@
 // models/User.js
 
 const mongoose = require('mongoose');
-
 const UserSchema = new mongoose.Schema({
   fullname: {
     type: String,
@@ -14,25 +13,25 @@ const UserSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: true, // NOTE: Hash in production!
+    required: true,
   },
   bio: {
     type: String,
     default: "",
   },
-
   profilePic: {
     type: String,
-    default: "", // or null
+    default: "",
   },
-
-  followers: [String],  // store usernames directly
+  followers: [String],
   following: [String],
-
   savedPosts: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Post',
   }],
+}, {
+  timestamps: true  // ✅ Add this line
 });
+
 
 module.exports = mongoose.model('User', UserSchema);
