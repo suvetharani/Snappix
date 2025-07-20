@@ -35,6 +35,9 @@ export default function Profile() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  // Add state for saved posts
+  const [savedPosts, setSavedPosts] = useState([]);
+  const [savedLoading, setSavedLoading] = useState(false);
 
 
   const handleUploadPost = async () => {
@@ -147,6 +150,32 @@ setIsFollowing(res.data.followers.some(f => f.username === loggedInUsername));
   fetchProfile();
 }, [username]);
 
+// Fetch saved posts when Saved tab is selected
+useEffect(() => {
+  if (activeTab === "Saved") {
+    const fetchSavedPosts = async () => {
+      setSavedLoading(true);
+      try {
+        const loggedInUsername = localStorage.getItem("username");
+        const res = await axios.get(`http://localhost:5000/api/posts/${loggedInUsername}/saved`);
+        // res.data.savedPosts is an array of post IDs, so fetch full post data for each
+        const posts = await Promise.all(
+          res.data.savedPosts.map(async (postId) => {
+            const postRes = await axios.get(`http://localhost:5000/api/posts/single/${postId}`);
+            return postRes.data;
+          })
+        );
+        setSavedPosts(posts);
+      } catch (err) {
+        setSavedPosts([]);
+      } finally {
+        setSavedLoading(false);
+      }
+    };
+    fetchSavedPosts();
+  }
+}, [activeTab]);
+
 
   if (loading) return <div className="text-center p-10">Loading...</div>;
   if (!user) return <div className="text-center p-10 text-red-500">User not found.</div>;
@@ -253,6 +282,34 @@ setIsFollowing(res.data.followers.some(f => f.username === loggedInUsername));
             ))
           ) : (
             <div>No posts</div>
+          )}
+        </div>
+      )}
+
+      {/* Saved Posts Grid */}
+      {activeTab === "Saved" && (
+        <div className="grid grid-cols-3 gap-2 mb-10">
+          {savedLoading ? (
+            <div>Loading...</div>
+          ) : savedPosts.length > 0 ? (
+            savedPosts.map((post, index) => (
+              <div
+                key={index}
+                className="cursor-pointer"
+                onClick={async () => {
+                  const res = await axios.get(`http://localhost:5000/api/posts/single/${post._id}`);
+                  setSelectedPost(res.data);
+                }}
+              >
+                <img
+                  src={`http://localhost:5000${post.fileUrl}`}
+                  alt={`Saved Post ${index + 1}`}
+                  className="w-full h-48 object-cover"
+                />
+              </div>
+            ))
+          ) : (
+            <div>No saved posts</div>
           )}
         </div>
       )}
