@@ -31,6 +31,8 @@ export default function Post({
   const [showLikers, setShowLikers] = useState(null);
 const [replyTo, setReplyTo] = useState(null); // holds the comment being replied to
 const [visibleReplies, setVisibleReplies] = useState({});
+const [showPostLikers, setShowPostLikers] = useState(false);
+const [postLikers, setPostLikers] = useState([]);
 
 const [comments, setComments] = useState(
   initialComments.map((c) => ({
@@ -46,6 +48,15 @@ const toggleCommentLike = (commentId) => {
   }));
 };
 
+const handleShowPostLikers = async () => {
+  try {
+    const res = await axios.get(`http://localhost:5000/api/posts/${postId}/likers`);
+    setPostLikers(res.data.likers); // assuming array of usernames
+    setShowPostLikers(!showPostLikers);
+  } catch (err) {
+    console.error("Failed to fetch likers:", err);
+  }
+};
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -57,17 +68,31 @@ const toggleCommentLike = (commentId) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleLike = async () => {
-    try {
-      await axios.post(`http://localhost:5000/api/posts/${postId}/like`, {
-        username: currentUser,
-      });
-      setLiked(!liked);
-      setLikesCount((prev) => (liked ? prev - 1 : prev + 1));
-    } catch (err) {
-      console.error("Like failed:", err);
-    }
+const handleLike = async () => {
+  try {
+    await axios.post(`http://localhost:5000/api/posts/${postId}/like`, {
+      username: currentUser,
+    });
+
+    setLiked(!liked);
+    setLikesCount((prev) => (liked ? prev - 1 : prev + 1));
+
+    // 🔄 Fetch updated likers
+    const res = await axios.get(`http://localhost:5000/api/posts/${postId}/likers`);
+    setPostLikers(res.data.likers);  // ✅ make sure setPostLikers is defined
+
+  } catch (err) {
+    console.error("Like failed:", err);
+  }
+};
+useEffect(() => {
+  const fetchLikers = async () => {
+    const res = await axios.get(`http://localhost:5000/api/posts/${postId}/likers`);
+    setPostLikers(res.data.likers);
   };
+  fetchLikers();
+}, [postId]);
+
 
 const handlePostComment = async () => {
   if (!commentInput.trim()) return;
@@ -154,14 +179,6 @@ const handleReplyLike = async (commentId, replyId) => {
   }
 };
 
-
-
-
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(window.location.href);
-    alert("Link copied!");
-  };
-
   return (
     <div className="bg-white border rounded-md shadow mb-6 w-full max-w-md mx-auto relative">
       {/* Post Header */}
@@ -184,15 +201,7 @@ const handleReplyLike = async (commentId, replyId) => {
         </button>
         {menuOpen && (
           <div className="absolute top-12 right-4 bg-white border rounded shadow z-50 w-48">
-            <button
-              className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-              onClick={() => {
-                alert(`About ${username}'s account`);
-                setMenuOpen(false);
-              }}
-            >
-              About this Account
-            </button>
+
             <button
               className="block w-full text-left px-4 py-2 text-red-500 hover:bg-gray-100"
               onClick={() => setMenuOpen(false)}
@@ -231,9 +240,39 @@ const handleReplyLike = async (commentId, replyId) => {
       </div>
 
       {/* Likes Count */}
-      <div className="px-4">
-        <p className="font-semibold mb-1">{likesCount} likes</p>
-      </div>
+{/* Likes Count */}
+<div className="px-4 relative">
+  <p
+    className="font-semibold mb-1 cursor-pointer hover:underline"
+    onClick={handleShowPostLikers}
+  >
+    {likesCount} likes
+  </p>
+
+  {/* Dropdown showing usernames */}
+{showPostLikers && postLikers.length > 0 && (
+  <div className="absolute bg-white border shadow-md rounded-md text-sm w-64 max-h-60 overflow-y-auto p-3 z-50">
+    <p className="font-semibold mb-2">Liked by:</p>
+    {postLikers.map((user, i) => (
+      <Link
+        key={i}
+        to={`/profile/${user.username}`}
+        className="flex items-center gap-3 p-1 rounded hover:bg-gray-100"
+      >
+        <img
+          src={user.profilePic}
+          alt={user.username}
+          className="w-8 h-8 rounded-full object-cover"
+        />
+        <span className="text-blue-500 hover:underline">{user.username}</span>
+      </Link>
+    ))}
+  </div>
+)}
+
+
+</div>
+
 
       {/* Post Caption */}
       <div className="px-4 pb-2">
