@@ -7,8 +7,10 @@ import {
   FaRegComment,
   FaRegPaperPlane,
   FaRegBookmark,
+  FaBookmark,
 } from "react-icons/fa";
 import { FiMoreHorizontal } from "react-icons/fi";
+import { Bookmark, BookmarkCheck } from "lucide-react";
 
 export default function Post({
   postId,
@@ -33,6 +35,10 @@ const [replyTo, setReplyTo] = useState(null); // holds the comment being replied
 const [visibleReplies, setVisibleReplies] = useState({});
 const [showPostLikers, setShowPostLikers] = useState(false);
 const [postLikers, setPostLikers] = useState([]);
+
+const [saved, setSaved] = useState(false);
+const [loadingSaved, setLoadingSaved] = useState(true);
+
 
 const [comments, setComments] = useState(
   initialComments.map((c) => ({
@@ -129,12 +135,41 @@ const handlePostComment = async () => {
   }
 };
 
+
 const toggleReplies = (commentId) => {
   setVisibleReplies((prev) => ({
     ...prev,
     [commentId]: !prev[commentId],
   }));
 };
+
+const handleSave = async () => {
+  try {
+    const res = await axios.post(`http://localhost:5000/api/posts/${postId}/save`, {
+      username: currentUser,
+    });
+    // Update saved state based on backend response
+    setSaved(res.data.savedPosts.map(id => id.toString()).includes(postId));
+  } catch (err) {
+    console.error("Error saving post:", err);
+  }
+};
+
+useEffect(() => {
+  const fetchSaved = async () => {
+    try {
+      const res = await axios.get(`http://localhost:5000/api/posts/${currentUser}/saved`);
+      // If the postId is in the savedPosts array, set saved true
+      setSaved(res.data.savedPosts.map(id => id.toString()).includes(postId));
+    } catch (err) {
+      setSaved(false);
+    } finally {
+      setLoadingSaved(false);
+    }
+  };
+  fetchSaved();
+}, [postId, currentUser]);
+
 
 
 const handleCommentLike = async (commentId) => {
@@ -234,9 +269,25 @@ const handleReplyLike = async (commentId, replyId) => {
           >
             <FaRegComment />
           </button>
-          <FaRegPaperPlane className="hover:scale-110 cursor-pointer" />
+          <button
+            onClick={(handleSave)}
+            className="hover:scale-110 cursor-pointer"
+          >
+            <FaRegPaperPlane />
+          </button>
         </div>
-        <FaRegBookmark className="text-2xl hover:scale-110 cursor-pointer" />
+        
+<button onClick={handleSave} disabled={loadingSaved}>
+  {loadingSaved ? (
+    <span className="w-5 h-5 inline-block animate-spin">⏳</span>
+  ) : saved ? (
+    <FaBookmark className="w-5 h-5 text-gray-600 cursor-pointer" />
+  ) : (
+    <FaRegBookmark className="w-5 h-5 text-gray-700 cursor-pointer" />
+  )}
+</button>
+
+
       </div>
 
       {/* Likes Count */}
