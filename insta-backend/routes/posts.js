@@ -350,9 +350,6 @@ router.post('/:postId/save', async (req, res) => {
     res.status(500).json({ message: "Server error", error: err.message });
   }
 });
-
-
-
 // GET /api/users/:username/saved
 // GET saved posts of a user
 router.get('/:username/saved', async (req, res) => {
@@ -368,6 +365,5 @@ router.get('/:username/saved', async (req, res) => {
     res.status(500).json({ error: "Server error while fetching saved posts" });
   }
 });
-
 
 module.exports = router;
