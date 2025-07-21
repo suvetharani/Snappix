@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { FiSearch, FiPhone, FiVideo, FiInfo, FiX, FiMic } from "react-icons/fi";
-import EmojiPicker from "emoji-picker-react"; // npm i emoji-picker-react
-import emma from "../assets/profiles/profile4.jpg";
-import john from "../assets/profiles/profile1.jpg";
+import EmojiPicker from "emoji-picker-react";
+import axios from "axios";
+import { io } from "socket.io-client";
+
+const SOCKET_URL = "http://localhost:5000";
 
 export default function Messages() {
   const [selectedChat, setSelectedChat] = useState(null);
@@ -10,38 +12,81 @@ export default function Messages() {
   const [message, setMessage] = useState("");
   const [showEmoji, setShowEmoji] = useState(false);
   const [mute, setMute] = useState(false);
+  const [following, setFollowing] = useState([]);
+  const [myUsername, setMyUsername] = useState("");
+  const socketRef = useRef(null);
 
-  const chats = [
-    {
-      id: 1,
-      name: "john_doe",
-      dp: john,
-      messages: [
-        { from: "them", text: "Hey there!" },
-        { from: "me", text: "Hello! How are you?" },
-      ],
-    },
-    {
-      id: 2,
-      name: "emma_watson",
-      dp: emma,
-      messages: [
-        { from: "them", text: "Hi, let’s meet up!" },
-        { from: "me", text: "Sure! When?" },
-      ],
-    },
-  ];
+  useEffect(() => {
+    const username = localStorage.getItem("username");
+    setMyUsername(username);
+    if (username) {
+      axios.get(`http://localhost:5000/api/profile/${username}`)
+        .then(res => {
+          setFollowing(res.data.following || []);
+        })
+        .catch(() => setFollowing([]));
+    }
+    // Setup socket.io connection
+    socketRef.current = io(SOCKET_URL);
+    if (username) {
+      socketRef.current.emit("register", username);
+    }
+    // Listen for incoming messages
+    socketRef.current.on("receive_message", (data) => {
+      // Only update if the message is for the currently selected chat
+      if (selectedChat && data.sender === selectedChat.name) {
+        setSelectedChat(prevChat => ({
+          ...prevChat,
+          messages: [...prevChat.messages, data],
+        }));
+      }
+    });
+    return () => {
+      if (socketRef.current) socketRef.current.disconnect();
+    };
+    // eslint-disable-next-line
+  }, [myUsername, selectedChat]);
 
-  const selectChat = (chat) => {
-    setSelectedChat(chat);
+  const selectChat = async (user) => {
+    try {
+      const res = await axios.get(`http://localhost:5000/api/messages/${myUsername}/${user.username}`);
+      setSelectedChat({
+        name: user.username,
+        dp: user.profilePic ? `http://localhost:5000${user.profilePic}` : "https://ui-avatars.com/api/?name=" + user.username,
+        messages: res.data.messages || [],
+      });
+    } catch (err) {
+      setSelectedChat({
+        name: user.username,
+        dp: user.profilePic ? `http://localhost:5000${user.profilePic}` : "https://ui-avatars.com/api/?name=" + user.username,
+        messages: [],
+      });
+    }
     setShowDetails(false);
   };
 
-  const sendMessage = () => {
-    if (message.trim()) {
-      selectedChat.messages.push({ from: "me", text: message });
-      setMessage("");
-      setShowEmoji(false);
+  const sendMessage = async () => {
+    if (message.trim() && selectedChat) {
+      try {
+        const newMessage = {
+          sender: myUsername,
+          receiver: selectedChat.name,
+          text: message.trim(),
+        };
+        await axios.post('http://localhost:5000/api/messages/send', newMessage);
+        setSelectedChat(prevChat => ({
+          ...prevChat,
+          messages: [...prevChat.messages, { ...newMessage, from: 'me' }],
+        }));
+        // Emit real-time event
+        if (socketRef.current) {
+          socketRef.current.emit("send_message", newMessage);
+        }
+        setMessage('');
+        setShowEmoji(false);
+      } catch (err) {
+        console.error('Failed to send message:', err);
+      }
     }
   };
 
@@ -49,7 +94,7 @@ export default function Messages() {
     <div className="flex h-screen">
       {/* Left Sidebar */}
       <aside className="w-1/3 border-r flex flex-col">
-        <div className="p-4 font-bold text-xl">your_id</div>
+        <div className="p-4 font-bold text-xl">{myUsername || "your_id"}</div>
 
         {/* Better Search */}
         <div className="px-4 mb-6">
@@ -63,21 +108,21 @@ export default function Messages() {
           </div>
         </div>
 
-        {/* Messages List */}
+        {/* Messages List from Following */}
         <div className="px-4 mb-2 overflow-y-auto">
           <h4 className="font-semibold mb-2">Messages</h4>
-          {chats.map((chat) => (
+          {following.map((user, idx) => (
             <div
-              key={chat.id}
+              key={idx}
               className="flex items-center gap-2 py-2 cursor-pointer hover:bg-gray-100 rounded px-2"
-              onClick={() => selectChat(chat)}
+              onClick={() => selectChat(user)}
             >
               <img
-                src={chat.dp}
-                alt={chat.name}
+                src={user.profilePic ? `http://localhost:5000${user.profilePic}` : "https://ui-avatars.com/api/?name=" + user.username}
+                alt={user.username}
                 className="w-10 h-10 rounded-full object-cover"
               />
-              <div>{chat.name}</div>
+              <div>{user.username}</div>
             </div>
           ))}
         </div>
@@ -113,12 +158,12 @@ export default function Messages() {
                 <div
                   key={i}
                   className={`mb-2 max-w-xs ${
-                    msg.from === "me" ? "ml-auto text-right" : ""
+                    msg.sender === myUsername ? "ml-auto text-right" : ""
                   }`}
                 >
                   <p
                     className={`inline-block px-4 py-2 rounded-lg ${
-                      msg.from === "me"
+                      msg.sender === myUsername
                         ? "bg-blue-500 text-white"
                         : "bg-gray-200 text-black"
                     }`}
