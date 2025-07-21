@@ -24,6 +24,7 @@ import {
   FiX,
 } from "react-icons/fi";
 import ReportModal from "./ReportModal";
+import { FaPlus } from "react-icons/fa";
 
 export default function Sidebar({ isOpen, setIsOpen }) {
   const [foundUser, setFoundUser] = useState(null);
@@ -42,6 +43,11 @@ export default function Sidebar({ isOpen, setIsOpen }) {
     const stored = localStorage.getItem("recents");
     return stored ? JSON.parse(stored) : [];
   });
+
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [caption, setCaption] = useState("");
+  const [uploading, setUploading] = useState(false);
 
 const handleSearch = async () => {
   if (!searchTerm.trim()) return;
@@ -278,11 +284,81 @@ const removeRecent = (index) => {
 
         {showCreate && isOpen && (
           <div className="absolute top-40 left-4 w-40 bg-white border shadow-lg rounded p-2 z-50">
-            <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
+            <button
+              className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+              onClick={() => {
+                document.getElementById("sidebarFileInput").click();
+                setShowCreate(false);
+              }}
+            >
               Post
             </button>
           </div>
         )}
+        <input
+  id="sidebarFileInput"
+  type="file"
+  accept="image/*,video/*"
+  className="hidden"
+  onChange={(e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      setShowCreateModal(true);
+    }
+  }}
+/>
+{showCreateModal && (
+  <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+    <div className="bg-white p-6 rounded shadow-md flex flex-col gap-4">
+      <p>Write a caption:</p>
+      <textarea
+        value={caption}
+        onChange={(e) => setCaption(e.target.value)}
+        className="border px-3 py-2 rounded"
+      />
+      <button
+        onClick={async () => {
+          if (!selectedFile) return;
+          setUploading(true);
+          const formData = new FormData();
+          formData.append("username", localStorage.getItem("username"));
+          formData.append("file", selectedFile);
+          formData.append("caption", caption);
+          try {
+            await axios.post("http://localhost:5000/api/posts/create", formData, {
+              headers: { "Content-Type": "multipart/form-data" },
+            });
+            setSelectedFile(null);
+            setCaption("");
+            setShowCreateModal(false);
+            setUploading(false);
+            window.location.reload();
+          } catch (err) {
+            setUploading(false);
+            alert("Failed to upload post");
+          }
+        }}
+        className="px-4 py-2 bg-blue-500 text-white rounded"
+        disabled={uploading}
+      >
+        {uploading ? "Posting..." : "Post"}
+      </button>
+      <button
+        onClick={() => {
+          setSelectedFile(null);
+          setCaption("");
+          setShowCreateModal(false);
+        }}
+        className="px-4 py-2 border border-blue-500 text-blue-500 rounded"
+        disabled={uploading}
+      >
+        Cancel
+      </button>
+    </div>
+  </div>
+)}
+
 
         {showMore && isOpen && (
           <div className="absolute top-40 left-4 w-56 bg-white border shadow-lg rounded p-2 z-50">
