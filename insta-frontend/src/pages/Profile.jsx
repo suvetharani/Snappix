@@ -346,6 +346,19 @@ function isVideoFile(fileUrl) {
 
 // Add state for mute/unmute in modal
 const [isVideoMuted, setIsVideoMuted] = useState(true);
+const videoModalRef = useRef(null);
+let touchTimeout = useRef();
+function handleTouchStart() {
+  touchTimeout.current = setTimeout(() => {
+    if (videoModalRef.current) {
+      if (videoModalRef.current.paused) videoModalRef.current.play();
+      else videoModalRef.current.pause();
+    }
+  }, 400);
+}
+function handleTouchEnd() {
+  clearTimeout(touchTimeout.current);
+}
 
 
   if (loading) return <div className="text-center p-10">Loading...</div>;
@@ -547,16 +560,20 @@ const [isVideoMuted, setIsVideoMuted] = useState(true);
                 style={{ width: 360, height: 640, minWidth: 180, minHeight: 320 }}
               >
                 <video
+                  ref={videoModalRef}
                   src={`http://localhost:5000${selectedPost.fileUrl}`}
                   autoPlay
                   muted={isVideoMuted}
                   playsInline
                   className="object-cover w-full h-full rounded cursor-pointer"
                   style={{ aspectRatio: '9/16', width: 360, height: 640, minWidth: 180, minHeight: 320 }}
-                  onClick={() => setIsVideoMuted((prev) => !prev)}
+                  onTouchStart={handleTouchStart}
+                  onTouchEnd={handleTouchEnd}
                 />
                 {/* Mute/unmute icon overlay */}
-                <span className="absolute bottom-4 right-4 bg-black bg-opacity-60 rounded-full p-2 z-10">
+                <span className="absolute bottom-4 right-4 bg-black bg-opacity-60 rounded-full p-2 z-10"
+                  onClick={() => setIsVideoMuted((prev) => !prev)}
+                >
                   {isVideoMuted ? <FaVolumeMute className="w-6 h-6 text-white" /> : <FaVolumeUp className="w-6 h-6 text-white" />}
                 </span>
 </div>
@@ -590,7 +607,12 @@ const [isVideoMuted, setIsVideoMuted] = useState(true);
                         <div className="flex items-start justify-between group">
                           <div>
                             <p>
-                                  <Link to={`/profile/${c.username}`} className="font-semibold hover:underline" onClick={() => setSelectedPost(null)}>{c.username}</Link>: {renderWithMentions(c.text, setSelectedPost)}
+                                  <Link to={`/profile/${c.username}`} className="font-semibold hover:underline" onClick={() => setSelectedPost(null)}>{c.username}</Link>
+{c.username === selectedPost.username && (
+  <span className="ml-1 text-xs text-blue-500 font-semibold">author</span>
+)}
+{': '}
+{renderWithMentions(c.text, setSelectedPost)}
                             </p>
                           </div>
                           <div className="flex flex-col items-center ml-2">
@@ -699,7 +721,12 @@ const [isVideoMuted, setIsVideoMuted] = useState(true);
                                     return (
                                       <div key={r._id} className="flex items-start justify-between group">
                                         <p className="text-sm text-gray-700">
-                                          <Link to={`/profile/${r.username}`} className="font-semibold hover:underline" onClick={() => setSelectedPost(null)}>{r.username}</Link>: {renderWithMentions(r.text, setSelectedPost)}
+                                          <Link to={`/profile/${r.username}`} className="font-semibold hover:underline" onClick={() => setSelectedPost(null)}>{r.username}</Link>
+{r.username === selectedPost.username && (
+  <span className="ml-1 text-xs text-blue-500 font-semibold">author</span>
+)}
+{': '}
+{renderWithMentions(r.text, setSelectedPost)}
                                         </p>
                                         <div className="flex items-start space-x-2 ml-2">
                                           <span
@@ -890,7 +917,12 @@ const [isVideoMuted, setIsVideoMuted] = useState(true);
                           <div className="flex items-start justify-between group">
                             <div>
                               <p>
-                                <Link to={`/profile/${c.username}`} className="font-semibold hover:underline" onClick={() => setSelectedPost(null)}>{c.username}</Link>: {renderWithMentions(c.text, setSelectedPost)}
+                                <Link to={`/profile/${c.username}`} className="font-semibold hover:underline" onClick={() => setSelectedPost(null)}>{c.username}</Link>
+{c.username === selectedPost.username && (
+  <span className="ml-1 text-xs text-blue-500 font-semibold">author</span>
+)}
+{': '}
+{renderWithMentions(c.text, setSelectedPost)}
                               </p>
                             </div>
                             <div className="flex flex-col items-center ml-2">
@@ -999,7 +1031,12 @@ const [isVideoMuted, setIsVideoMuted] = useState(true);
                                 return (
                                   <div key={r._id} className="flex items-start justify-between group">
                                     <p className="text-sm text-gray-700">
-                                        <Link to={`/profile/${r.username}`} className="font-semibold hover:underline" onClick={() => setSelectedPost(null)}>{r.username}</Link>: {renderWithMentions(r.text, setSelectedPost)}
+                                        <Link to={`/profile/${r.username}`} className="font-semibold hover:underline" onClick={() => setSelectedPost(null)}>{r.username}</Link>
+{r.username === selectedPost.username && (
+  <span className="ml-1 text-xs text-blue-500 font-semibold">author</span>
+)}
+{': '}
+{renderWithMentions(r.text, setSelectedPost)}
                                     </p>
                                     <div className="flex items-start space-x-2 ml-2">
                                       <span
