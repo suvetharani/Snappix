@@ -7,6 +7,10 @@ import Picker from "@emoji-mart/react";
 import data from "@emoji-mart/data";
 import { useNavigate } from 'react-router-dom';
 import { FaEllipsisH, FaHeart, FaRegHeart, FaBookmark, FaRegBookmark } from "react-icons/fa";
+import { FaEllipsisV } from "react-icons/fa";
+import { createPortal } from "react-dom";
+import { FaPlay } from "react-icons/fa";
+import { FaVolumeMute, FaVolumeUp } from "react-icons/fa";
 
 
 export default function Profile() {
@@ -47,11 +51,18 @@ export default function Profile() {
   const [modalReplyTo, setModalReplyTo] = useState(null); // comment id being replied to
   const [modalReplyInput, setModalReplyInput] = useState("");
   const [modalComments, setModalComments] = useState([]);
+  // Add state for syncing like status
+  const [modalLikeSync, setModalLikeSync] = useState(false);
   // Add state for showing comment likers dropdown in the modal
   const [showCommentLikers, setShowCommentLikers] = useState({}); // {commentId: bool}
   const [commentLikers, setCommentLikers] = useState({}); // {commentId: [user]}
+  // Add state to track dropdown position
+  const [dropdownPos, setDropdownPos] = useState({});
 
   const commentInputRef = useRef(null);
+  // Add ref and state for post like count position
+  const postLikeCountRef = useRef(null);
+  const [postDropdownPos, setPostDropdownPos] = useState(null);
 
   const handleUploadPost = async () => {
     if (!selectedFile) return;
@@ -204,6 +215,15 @@ useEffect(() => {
   }
 }, [selectedPost]);
 
+// Persist isLiked state based on selectedPost.likes
+useEffect(() => {
+  if (selectedPost) {
+    const liked = selectedPost.likes?.includes(localStorage.getItem("username"));
+    console.log('Setting isLiked:', liked);
+    setIsLiked(liked);
+  }
+}, [selectedPost]);
+
 // Save/unsave handler
 const handleModalSave = async () => {
   try {
@@ -298,6 +318,35 @@ const toggleModalReplies = (commentId) => {
   }));
 };
 
+// Helper to render text with clickable @mentions
+function renderWithMentions(text, setSelectedPost) {
+  const parts = text.split(/(@[a-zA-Z0-9_]+)/g);
+  return parts.map((part, i) => {
+    if (/^@[a-zA-Z0-9_]+$/.test(part)) {
+      const username = part.slice(1);
+      return (
+        <Link
+          key={i}
+          to={`/profile/${username}`}
+          className="text-gray-600 hover:underline"
+          onClick={() => setSelectedPost && setSelectedPost(null)}
+        >
+          {part}
+        </Link>
+      );
+    }
+    return part;
+  });
+}
+
+// Helper to check if a file is a video
+function isVideoFile(fileUrl) {
+  return /\.(mp4|webm|ogg)$/i.test(fileUrl);
+}
+
+// Add state for mute/unmute in modal
+const [isVideoMuted, setIsVideoMuted] = useState(true);
+
 
   if (loading) return <div className="text-center p-10">Loading...</div>;
   if (!user) return <div className="text-center p-10 text-red-500">User not found.</div>;
@@ -390,18 +439,33 @@ const toggleModalReplies = (commentId) => {
             posts.map((post, index) => (
               <div
                 key={index}
-                className="cursor-pointer aspect-square overflow-hidden bg-black"
+                className="cursor-pointer aspect-square overflow-hidden bg-black flex items-center justify-center relative"
                 onClick={async () => {
                   const res = await axios.get(`http://localhost:5000/api/posts/single/${post._id}`);
                   setSelectedPost(res.data);
                 }}
               >
+                {isVideoFile(post.fileUrl) && (
+                  <span className="absolute top-2 right-2 text-white bg-black bg-opacity-60 rounded-full p-1 z-10">
+                    <FaPlay className="w-4 h-4" />
+                  </span>
+                )}
+                {isVideoFile(post.fileUrl) ? (
+                  <video
+                    src={`http://localhost:5000${post.fileUrl}`}
+                    className="w-full h-full object-cover"
+                    style={{ aspectRatio: '1/1' }}
+                    muted
+                    playsInline
+                  />
+                ) : (
                 <img
                   src={`http://localhost:5000${post.fileUrl}`}
                   alt={`Post ${index + 1}`}
                   className="w-full h-full object-cover"
                   style={{ aspectRatio: '1/1' }}
                 />
+                )}
               </div>
             ))
           ) : (
@@ -441,19 +505,17 @@ const toggleModalReplies = (commentId) => {
 
       {/* Post Viewer Modal */}
       {selectedPost && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded shadow-md flex flex-col md:flex-row w-full max-w-4xl relative">
-
-<div className="absolute top-2 right-2">
-  <div className="relative">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded shadow-md flex flex-row w-auto max-w-4xl relative overflow-hidden">
+            {/* Three Dots Dropdown Button */}
+            <div className="absolute top-2 right-2 z-50">
     <button
+                className="text-2xl text-gray-500 hover:text-black"
       onClick={() => setShowDropdown(prev => !prev)}
-      className="text-2xl text-gray-700 hover:text-black"
       title="Options"
     >
-      <FaEllipsisH />
+                <FaEllipsisV />
     </button>
-
 {showDropdown && (
   <div className="absolute right-0 mt-2 w-32 bg-white border rounded shadow-lg z-50">
     {selectedPost.username === localStorage.getItem("username") && (
@@ -469,8 +531,8 @@ const toggleModalReplies = (commentId) => {
     )}
     <button
       onClick={() => {
-        setSelectedPost(null);
         setShowDropdown(false);
+                      setSelectedPost(null);
       }}
       className="w-full text-left px-4 py-2 hover:bg-gray-100"
     >
@@ -478,34 +540,57 @@ const toggleModalReplies = (commentId) => {
     </button>
   </div>
 )}
-
   </div>
+            {/* Image Section */}
+            {isVideoFile(selectedPost.fileUrl) ? (
+              <div className="flex-shrink-0 flex items-center justify-center bg-black relative"
+                style={{ width: 360, height: 640, minWidth: 180, minHeight: 320 }}
+              >
+                <video
+                  src={`http://localhost:5000${selectedPost.fileUrl}`}
+                  autoPlay
+                  muted={isVideoMuted}
+                  playsInline
+                  className="object-cover w-full h-full rounded cursor-pointer"
+                  style={{ aspectRatio: '9/16', width: 360, height: 640, minWidth: 180, minHeight: 320 }}
+                  onClick={() => setIsVideoMuted((prev) => !prev)}
+                />
+                {/* Mute/unmute icon overlay */}
+                <span className="absolute bottom-4 right-4 bg-black bg-opacity-60 rounded-full p-2 z-10">
+                  {isVideoMuted ? <FaVolumeMute className="w-6 h-6 text-white" /> : <FaVolumeUp className="w-6 h-6 text-white" />}
+                </span>
 </div>
-
-            {/* 1:1 Image */}
-            <div className="flex-shrink-0 flex items-center justify-center bg-black" style={{ width: 400, height: 400 }}>
+            ) : (
+              <div className="flex-shrink-0 flex items-center justify-center bg-black"
+                style={isVideoFile(selectedPost.fileUrl)
+                  ? { width: 360, height: 640, minWidth: 180, minHeight: 320 }
+                  : { width: 400, height: 400, minWidth: 300, minHeight: 300 }}
+              >
               <img
                 src={`http://localhost:5000${selectedPost.fileUrl}`}
                 alt="Full"
                 className="object-cover w-full h-full rounded"
-                style={{ aspectRatio: '1/1', width: 400, height: 400 }}
+                  style={{ aspectRatio: '1/1', width: 400, height: 400, minWidth: 300, minHeight: 300 }}
               />
             </div>
-            {/* Post details */}
-            <div className="p-4 flex-1 flex flex-col min-w-[300px] max-w-[400px]">
-              <h2 className="font-semibold mb-2">{selectedPost.username}</h2>
-              <p className="mb-4">{selectedPost.caption}</p>
+            )}
+            {/* Comments & Details Section */}
+            {isVideoFile(selectedPost.fileUrl) ? (
+              <div className="flex flex-col min-w-[180px] max-w-[360px]" style={{ width: 360, height: 640 }}>
+                <div className="flex-1 flex flex-col p-2">
+                  <h2 className="font-semibold mb-1">{selectedPost.username}</h2>
+                  <p className="mb-2">{selectedPost.caption}</p>
               {/* Scrollable comments section */}
-              <div className="flex-1 overflow-y-auto mb-4 max-h-56 border-b pb-2">
+                  <div className="flex-1 overflow-y-auto mb-2 border-b pb-1 pr-1">
                 {modalComments.length ? (
                   modalComments.map((c) => {
                     const isLiked = c.likes?.includes(localStorage.getItem("username"));
                     return (
-                      <div key={c._id} className="mb-2 relative">
+                          <div key={c._id} className="mb-1 relative">
                         <div className="flex items-start justify-between group">
                           <div>
                             <p>
-                              <strong>{c.username}</strong>: {c.text}
+                                  <Link to={`/profile/${c.username}`} className="font-semibold hover:underline" onClick={() => setSelectedPost(null)}>{c.username}</Link>: {renderWithMentions(c.text, setSelectedPost)}
                             </p>
                           </div>
                           <div className="flex flex-col items-center ml-2">
@@ -529,43 +614,377 @@ const toggleModalReplies = (commentId) => {
                                   )}
                                 </button>
                                 <span
-                                  className="text-xs text-gray-600 cursor-pointer hover:underline"
+                                      className="text-xs text-gray-600 cursor-pointer hover:underline relative"
+                                      onClick={(e) => {
+                                        // Toggle dropdown for this comment
+                                        setShowCommentLikers((prev) => ({ ...Object.keys(prev).reduce((acc, key) => ({ ...acc, [key]: false }), {}), [c._id]: !prev[c._id] }));
+                                        // Get bounding rect for dropdown position
+                                        const rect = e.target.getBoundingClientRect();
+                                        const dropdownWidth = 144; // 9rem in px
+                                        const dropdownHeight = 120; // px
+                                        let left = rect.left;
+                                        let top, direction;
+                                        // Clamp left so dropdown never overflows right edge
+                                        if (left + dropdownWidth > window.innerWidth) {
+                                          left = window.innerWidth - dropdownWidth - 8; // 8px margin
+                                        }
+                                        if (rect.top > dropdownHeight) {
+                                          // Enough space above
+                                          top = rect.top - dropdownHeight;
+                                          direction = 'above';
+                                        } else {
+                                          // Not enough space above, show below
+                                          top = rect.bottom;
+                                          direction = 'below';
+                                        }
+                                        // Clamp top so dropdown never goes off top
+                                        if (top < 0) top = rect.bottom;
+                                        setDropdownPos((prev) => ({ ...prev, [c._id]: { left, top, direction } }));
+                                      }}
+                                    >
+                                      {/* Dropdown for likers, always visible and never cut off, rendered via portal */}
+                                      {showCommentLikers[c._id] && c.likes?.length > 0 && dropdownPos[c._id] &&
+                                        createPortal(
+                                          <div
+                                            style={{
+                                              position: 'fixed',
+                                              left: dropdownPos[c._id].left,
+                                              top: dropdownPos[c._id].top,
+                                              zIndex: 9999,
+                                              width: '9rem', // w-36
+                                              maxHeight: '7rem', // max-h-28
+                                              overflowY: 'auto',
+                                              background: 'white',
+                                              border: '1px solid #e5e7eb',
+                                              borderRadius: '0.375rem',
+                                              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                                              padding: '0.5rem',
+                                            }}
+                                          >
+                                            <p className="font-semibold mb-1">Liked by:</p>
+                                            {c.likes.map((username, i) => (
+                                              <Link
+                                                key={i}
+                                                to={`/profile/${username}`}
+                                                className="block text-gray-600 hover:underline p-1 rounded hover:bg-gray-100"
+                                                onClick={() => setSelectedPost(null)}
+                                              >
+                                                {username}
+                                              </Link>
+                                            ))}
+                                          </div>,
+                                          document.body
+                                        )
+                                      }
+                                      {c.likes?.length || 0}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            {/* Replies */}
+                            {c.replies && c.replies.length > 0 && (
+                              <div className="ml-4 mt-1 border-l border-gray-200 pl-3 space-y-1">
+                                <span
+                                  onClick={() => toggleModalReplies(c._id)}
+                                  className="text-xs text-blue-500 cursor-pointer"
+                                >
+                                  {modalVisibleReplies[c._id]
+                                    ? `Hide replies`
+                                    : `View all ${c.replies.length} replies`}
+                                </span>
+                                {modalVisibleReplies[c._id] &&
+                                  c.replies.map((r) => {
+                                    const isReplyLiked = r.likes?.includes(localStorage.getItem("username"));
+                                    return (
+                                      <div key={r._id} className="flex items-start justify-between group">
+                                        <p className="text-sm text-gray-700">
+                                          <Link to={`/profile/${r.username}`} className="font-semibold hover:underline" onClick={() => setSelectedPost(null)}>{r.username}</Link>: {renderWithMentions(r.text, setSelectedPost)}
+                                        </p>
+                                        <div className="flex items-start space-x-2 ml-2">
+                                          <span
+                                            className="text-xs text-blue-500 cursor-pointer"
+                                            onClick={() => {
+                                              setModalReplyTo(c._id);
+                                              setModalReplyInput(`@${r.username} `);
+                                              setTimeout(() => commentInputRef.current && commentInputRef.current.focus(), 0);
+                                            }}
+                                          >
+                                            Reply
+                                          </span>
+                                          <div className="flex flex-col items-center">
+                                            <button onClick={() => handleModalReplyLike(c._id, r._id)}>
+                                              {isReplyLiked ? (
+                                                <FaHeart className="text-red-500 text-sm" />
+                                              ) : (
+                                                <FaRegHeart className="text-sm" />
+                                              )}
+                                            </button>
+                                            <span className="text-xs text-gray-600 cursor-pointer hover:underline">
+                                              {r.likes?.length || 0}
+                                            </span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <p className="text-gray-400 text-sm">No comments yet.</p>
+                    )}
+                  </div>
+                </div>
+                {/* Like, Save, and Like Count */}
+                <div className="px-1 py-1">
+                  <div className="flex items-center gap-2 relative">
+                    <button
+                      className={`text-2xl transition-colors duration-200 ${isLiked ? "text-red-500" : "text-gray-600"}`}
                                   onClick={async () => {
                                     try {
-                                      const res = await axios.get(`http://localhost:5000/api/posts/${selectedPost._id}/comments/${c._id}/likers`);
-                                      setCommentLikers((prev) => ({ ...prev, [c._id]: res.data.likers }));
-                                      setShowCommentLikers((prev) => ({ ...Object.keys(prev).reduce((acc, key) => ({ ...acc, [key]: false }), {}), [c._id]: !prev[c._id] }));
+                          await axios.post(`http://localhost:5000/api/posts/${selectedPost._id}/like`, {
+                            username: localStorage.getItem("username"),
+                          });
+                          setIsLiked((prev) => !prev);
+                          setSelectedPost((prev) => ({
+                            ...prev,
+                            likes: prev.likes?.includes(localStorage.getItem("username"))
+                              ? prev.likes.filter(u => u !== localStorage.getItem("username"))
+                              : [...(prev.likes || []), localStorage.getItem("username")],
+                          }));
                                     } catch (err) {}
                                   }}
                                 >
-                                  {c.likes?.length || 0}
+                      {isLiked ? <FaHeart /> : <FaRegHeart />}
+                    </button>
+                    <span
+                      ref={postLikeCountRef}
+                      className="text-sm cursor-pointer hover:underline"
+                      onClick={async (e) => {
+                        try {
+                          const res = await axios.get(`http://localhost:5000/api/posts/${selectedPost._id}/likers`);
+                          setModalLikers(res.data.likers);
+                          setShowModalLikers((prev) => !prev);
+                          // Get bounding rect for dropdown position
+                          const rect = (postLikeCountRef.current || e.target).getBoundingClientRect();
+                          const dropdownWidth = 256; // 16rem in px (w-64)
+                          const dropdownHeight = 240; // 15rem in px (max-h-60)
+                          let left = rect.left;
+                          let top, direction;
+                          // Clamp left so dropdown never overflows right edge
+                          if (left + dropdownWidth > window.innerWidth) {
+                            left = window.innerWidth - dropdownWidth - 8; // 8px margin
+                          }
+                          if (rect.top > dropdownHeight) {
+                            // Enough space above
+                            top = rect.top - dropdownHeight;
+                            direction = 'above';
+                          } else {
+                            // Not enough space above, show below
+                            top = rect.bottom;
+                            direction = 'below';
+                          }
+                          // Clamp top so dropdown never goes off top
+                          if (top < 0) top = rect.bottom;
+                          setPostDropdownPos({ left, top, direction });
+                        } catch (err) {}
+                      }}
+                    >
+                      {selectedPost.likes?.length || 0} likes
                                 </span>
-                                {showCommentLikers[c._id] && commentLikers[c._id]?.length > 0 && (
-                                  <div className="absolute top-8 left-0 bg-white border shadow-md rounded-md text-xs w-48 max-h-32 overflow-y-auto p-2 z-50">
-                                    <p className="font-semibold mb-1">Liked by:</p>
-                                    {commentLikers[c._id].map((user, i) => (
+                    {/* Post likers dropdown rendered via portal */}
+                    {showModalLikers && modalLikers.length > 0 && postDropdownPos &&
+                      createPortal(
+                        <div
+                          style={{
+                            position: 'fixed',
+                            left: postDropdownPos.left,
+                            top: postDropdownPos.top,
+                            zIndex: 9999,
+                            width: '16rem', // w-64
+                            maxHeight: '15rem', // max-h-60
+                            overflowY: 'auto',
+                            background: 'white',
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '0.375rem',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                            padding: '0.75rem',
+                          }}
+                        >
+                          <p className="font-semibold mb-2">Liked by:</p>
+                          {modalLikers.map((user, i) => (
                                       <Link
                                         key={i}
                                         to={`/profile/${user.username}`}
-                                        className="flex items-center gap-2 p-1 rounded hover:bg-gray-100"
+                              className="flex items-center gap-3 p-1 rounded hover:bg-gray-100"
+                              onClick={() => setSelectedPost(null)}
                                       >
                                         <img
                                           src={user.profilePic}
                                           alt={user.username}
-                                          className="w-6 h-6 rounded-full object-cover"
+                                className="w-8 h-8 rounded-full object-cover"
                                         />
                                         <span className="text-blue-500 hover:underline">{user.username}</span>
                                       </Link>
                                     ))}
+                        </div>,
+                        document.body
+                      )
+                    }
+                    <button
+                      className="ml-auto text-2xl text-gray-600 hover:opacity-80"
+                      onClick={handleModalSave}
+                    >
+                      {isSavedModal ? <FaBookmark /> : <FaRegBookmark />}
+                    </button>
+                  </div>
+                  {/* Comment input */}
+                  <div className="flex items-center border-t pt-1 relative mt-2">
+                    <button
+                      onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                      className="text-2xl mr-2"
+                      title="Emoji"
+                    >
+                      😊
+                    </button>
+                    {showEmojiPicker && (
+                      <div className="absolute bottom-12 left-0 z-50">
+                        <Picker data={data} onEmojiSelect={(emoji) =>
+                          setCommentInput(prev => prev + emoji.native)
+                        } />
                                   </div>
                                 )}
+
+                    <input
+                      ref={commentInputRef}
+                      type="text"
+                      value={modalReplyInput}
+                      onChange={(e) => setModalReplyInput(e.target.value)}
+                      placeholder={modalReplyTo ? `Replying...` : "Add a comment..."}
+                      className="flex-1 border rounded px-2 py-1"
+                    />
+                    <button
+                      onClick={handleModalPostComment}
+                      disabled={modalReplyInput.trim() === ""}
+                      className={`ml-2 px-3 py-1 rounded text-white ${modalReplyInput.trim() === "" ? "bg-gray-400 cursor-not-allowed" : "bg-blue-500"}`}
+                    >
+                      Post
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="p-4 flex-1 flex flex-col min-w-[300px] max-w-[400px]">
+                <h2 className="font-semibold mb-1">{selectedPost.username}</h2>
+                <p className="mb-2">{selectedPost.caption}</p>
+                {/* Scrollable comments section */}
+                <div className="flex-1 overflow-y-auto mb-2 max-h-56 border-b pb-1 pr-1">
+                  {modalComments.length ? (
+                    modalComments.map((c) => {
+                      const isLiked = c.likes?.includes(localStorage.getItem("username"));
+                      return (
+                        <div key={c._id} className="mb-1 relative">
+                          <div className="flex items-start justify-between group">
+                            <div>
+                              <p>
+                                <Link to={`/profile/${c.username}`} className="font-semibold hover:underline" onClick={() => setSelectedPost(null)}>{c.username}</Link>: {renderWithMentions(c.text, setSelectedPost)}
+                              </p>
+                            </div>
+                            <div className="flex flex-col items-center ml-2">
+                              <div className="flex items-start space-x-2 ml-2">
+                                <span
+                                  className="text-xs text-blue-500 cursor-pointer"
+                                  onClick={() => {
+                                    setModalReplyTo(c._id);
+                                    setModalReplyInput(`@${c.username} `);
+                                    setTimeout(() => commentInputRef.current && commentInputRef.current.focus(), 0);
+                                  }}
+                                >
+                                  Reply
+                                </span>
+                                <div className="flex flex-col items-center">
+                                  <button onClick={() => handleModalCommentLike(c._id)}>
+                                    {isLiked ? (
+                                      <FaHeart className="text-red-500 text-sm" />
+                                    ) : (
+                                      <FaRegHeart className="text-sm" />
+                                    )}
+                                  </button>
+                                  <span
+                                    className="text-xs text-gray-600 cursor-pointer hover:underline relative"
+                                    onClick={(e) => {
+                                      // Toggle dropdown for this comment
+                                      setShowCommentLikers((prev) => ({ ...Object.keys(prev).reduce((acc, key) => ({ ...acc, [key]: false }), {}), [c._id]: !prev[c._id] }));
+                                      // Get bounding rect for dropdown position
+                                      const rect = e.target.getBoundingClientRect();
+                                      const dropdownWidth = 144; // 9rem in px
+                                      const dropdownHeight = 120; // px
+                                      let left = rect.left;
+                                      let top, direction;
+                                      // Clamp left so dropdown never overflows right edge
+                                      if (left + dropdownWidth > window.innerWidth) {
+                                        left = window.innerWidth - dropdownWidth - 8; // 8px margin
+                                      }
+                                      if (rect.top > dropdownHeight) {
+                                        // Enough space above
+                                        top = rect.top - dropdownHeight;
+                                        direction = 'above';
+                                      } else {
+                                        // Not enough space above, show below
+                                        top = rect.bottom;
+                                        direction = 'below';
+                                      }
+                                      // Clamp top so dropdown never goes off top
+                                      if (top < 0) top = rect.bottom;
+                                      setDropdownPos((prev) => ({ ...prev, [c._id]: { left, top, direction } }));
+                                    }}
+                                  >
+                                    {/* Dropdown for likers, always visible and never cut off, rendered via portal */}
+                                    {showCommentLikers[c._id] && c.likes?.length > 0 && dropdownPos[c._id] &&
+                                      createPortal(
+                                        <div
+                                          style={{
+                                            position: 'fixed',
+                                            left: dropdownPos[c._id].left,
+                                            top: dropdownPos[c._id].top,
+                                            zIndex: 9999,
+                                            width: '9rem', // w-36
+                                            maxHeight: '7rem', // max-h-28
+                                            overflowY: 'auto',
+                                            background: 'white',
+                                            border: '1px solid #e5e7eb',
+                                            borderRadius: '0.375rem',
+                                            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                                            padding: '0.5rem',
+                                          }}
+                                        >
+                                          <p className="font-semibold mb-1">Liked by:</p>
+                                          {c.likes.map((username, i) => (
+                                            <Link
+                                              key={i}
+                                              to={`/profile/${username}`}
+                                              className="block text-gray-600 hover:underline p-1 rounded hover:bg-gray-100"
+                                              onClick={() => setSelectedPost(null)}
+                                            >
+                                              {username}
+                                            </Link>
+                                          ))}
+                                        </div>,
+                                        document.body
+                                      )
+                                    }
+                                    {c.likes?.length || 0}
+                                  </span>
                               </div>
                             </div>
                           </div>
                         </div>
                         {/* Replies */}
                         {c.replies && c.replies.length > 0 && (
-                          <div className="ml-4 mt-1 border-l border-gray-200 pl-3 space-y-2">
+                            <div className="ml-4 mt-1 border-l border-gray-200 pl-3 space-y-1">
                             <span
                               onClick={() => toggleModalReplies(c._id)}
                               className="text-xs text-blue-500 cursor-pointer"
@@ -580,7 +999,7 @@ const toggleModalReplies = (commentId) => {
                                 return (
                                   <div key={r._id} className="flex items-start justify-between group">
                                     <p className="text-sm text-gray-700">
-                                      <strong>{r.username}</strong>: {r.text}
+                                        <Link to={`/profile/${r.username}`} className="font-semibold hover:underline" onClick={() => setSelectedPost(null)}>{r.username}</Link>: {renderWithMentions(r.text, setSelectedPost)}
                                     </p>
                                     <div className="flex items-start space-x-2 ml-2">
                                       <span
@@ -619,7 +1038,7 @@ const toggleModalReplies = (commentId) => {
                 )}
               </div>
               {/* Like, Save, and Like Count */}
-              <div className="flex items-center gap-2 px-2 py-2 relative">
+                <div className="flex items-center gap-2 px-1 py-1 relative">
                 <button
                   className={`text-2xl transition-colors duration-200 ${isLiked ? "text-red-500" : "text-gray-600"}`}
                   onClick={async () => {
@@ -640,25 +1059,66 @@ const toggleModalReplies = (commentId) => {
                   {isLiked ? <FaHeart /> : <FaRegHeart />}
                 </button>
                 <span
+                    ref={postLikeCountRef}
                   className="text-sm cursor-pointer hover:underline"
-                  onClick={async () => {
+                    onClick={async (e) => {
                     try {
                       const res = await axios.get(`http://localhost:5000/api/posts/${selectedPost._id}/likers`);
                       setModalLikers(res.data.likers);
                       setShowModalLikers((prev) => !prev);
+                        // Get bounding rect for dropdown position
+                        const rect = (postLikeCountRef.current || e.target).getBoundingClientRect();
+                        const dropdownWidth = 256; // 16rem in px (w-64)
+                        const dropdownHeight = 240; // 15rem in px (max-h-60)
+                        let left = rect.left;
+                        let top, direction;
+                        // Clamp left so dropdown never overflows right edge
+                        if (left + dropdownWidth > window.innerWidth) {
+                          left = window.innerWidth - dropdownWidth - 8; // 8px margin
+                        }
+                        if (rect.top > dropdownHeight) {
+                          // Enough space above
+                          top = rect.top - dropdownHeight;
+                          direction = 'above';
+                        } else {
+                          // Not enough space above, show below
+                          top = rect.bottom;
+                          direction = 'below';
+                        }
+                        // Clamp top so dropdown never goes off top
+                        if (top < 0) top = rect.bottom;
+                        setPostDropdownPos({ left, top, direction });
                     } catch (err) {}
                   }}
                 >
                   {selectedPost.likes?.length || 0} likes
                 </span>
-                {showModalLikers && modalLikers.length > 0 && (
-                  <div className="absolute top-10 left-0 bg-white border shadow-md rounded-md text-sm w-64 max-h-60 overflow-y-auto p-3 z-50">
+                  {/* Post likers dropdown rendered via portal */}
+                  {showModalLikers && modalLikers.length > 0 && postDropdownPos &&
+                    createPortal(
+                      <div
+                        style={{
+                          position: 'fixed',
+                          left: postDropdownPos.left,
+                          top: postDropdownPos.top,
+                          zIndex: 9999,
+                          width: '16rem', // w-64
+                          maxHeight: '15rem', // max-h-60
+                          overflowY: 'auto',
+                          background: 'white',
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '0.375rem',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                          padding: '0.75rem',
+                        }}
+                      >
                     <p className="font-semibold mb-2">Liked by:</p>
                     {modalLikers.map((user, i) => (
                       <Link
                         key={i}
                         to={`/profile/${user.username}`}
                         className="flex items-center gap-3 p-1 rounded hover:bg-gray-100"
+                            onClick={() => setSelectedPost(null)}
                       >
                         <img
                           src={user.profilePic}
@@ -668,8 +1128,10 @@ const toggleModalReplies = (commentId) => {
                         <span className="text-blue-500 hover:underline">{user.username}</span>
                       </Link>
                     ))}
-                  </div>
-                )}
+                      </div>,
+                      document.body
+                    )
+                  }
                 <button
                   className="ml-auto text-2xl text-gray-600 hover:opacity-80"
                   onClick={handleModalSave}
@@ -677,10 +1139,8 @@ const toggleModalReplies = (commentId) => {
                   {isSavedModal ? <FaBookmark /> : <FaRegBookmark />}
                 </button>
               </div>
-              {/* Save Button and Comment input remain unchanged */}
-
-
-              <div className="flex items-center border-t pt-2 relative">
+                {/* Comment input */}
+                <div className="flex items-center border-t pt-1 relative">
                 <button
                   onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                   className="text-2xl mr-2"
@@ -689,7 +1149,7 @@ const toggleModalReplies = (commentId) => {
                   😊
                 </button>
                 {showEmojiPicker && (
-                  <div className="absolute bottom-16 left-0 z-50">
+                    <div className="absolute bottom-12 left-0 z-50">
                     <Picker data={data} onEmojiSelect={(emoji) =>
                       setCommentInput(prev => prev + emoji.native)
                     } />
@@ -702,17 +1162,18 @@ const toggleModalReplies = (commentId) => {
                   value={modalReplyInput}
                   onChange={(e) => setModalReplyInput(e.target.value)}
                   placeholder={modalReplyTo ? `Replying...` : "Add a comment..."}
-                  className="flex-1 border rounded px-3 py-2"
+                    className="flex-1 border rounded px-2 py-1"
                 />
                 <button
                   onClick={handleModalPostComment}
                   disabled={modalReplyInput.trim() === ""}
-                  className={`ml-2 px-4 py-2 rounded text-white ${modalReplyInput.trim() === "" ? "bg-gray-400 cursor-not-allowed" : "bg-blue-500"}`}
+                    className={`ml-2 px-3 py-1 rounded text-white ${modalReplyInput.trim() === "" ? "bg-gray-400 cursor-not-allowed" : "bg-blue-500"}`}
                 >
                   Post
                 </button>
               </div>
             </div>
+            )}
           </div>
 
           {/* Delete Confirmation */}
@@ -845,7 +1306,11 @@ const toggleModalReplies = (commentId) => {
           {user.followers.map(f => (
             <li
               key={f.username}
-              onClick={() => navigate(`/profile/${f.username}`)}
+              onClick={() => {
+                setShowFollowers(false);
+                setSelectedPost && setSelectedPost(null);
+                navigate(`/profile/${f.username}`);
+              }}
               className="flex items-center gap-2 p-2 cursor-pointer hover:bg-gray-100 rounded"
             >
               <img
@@ -880,7 +1345,11 @@ const toggleModalReplies = (commentId) => {
           {user.following.map((f, i) => (
             <li
               key={i}
-              onClick={() => navigate(`/profile/${f.username}`)}
+              onClick={() => {
+                setShowFollowing(false);
+                setSelectedPost && setSelectedPost(null);
+                navigate(`/profile/${f.username}`);
+              }}
               className="flex items-center gap-3 p-2 cursor-pointer hover:bg-gray-100 rounded"
             >
               <img

@@ -8,9 +8,17 @@ import {
   FaRegPaperPlane,
   FaRegBookmark,
   FaBookmark,
+  FaPlay,
+  FaVolumeMute,
+  FaVolumeUp
 } from "react-icons/fa";
 import { FiMoreHorizontal } from "react-icons/fi";
 import { Bookmark, BookmarkCheck } from "lucide-react";
+
+// Helper to check if a file is a video
+function isVideoFile(fileUrl) {
+  return /\.(mp4|webm|ogg)$/i.test(fileUrl);
+}
 
 export default function Post({
   postId,
@@ -38,6 +46,9 @@ export default function Post({
 
   const [saved, setSaved] = useState(false);
   const [loadingSaved, setLoadingSaved] = useState(true);
+
+  const [showVideoModal, setShowVideoModal] = useState(false);
+  const [isVideoMuted, setIsVideoMuted] = useState(true);
 
 
   const [comments, setComments] = useState(
@@ -247,14 +258,34 @@ export default function Post({
         )}
       </div>
 
-      {/* Post Image */}
-      <div className="relative">
-        <img
-          src={image}
-          alt="post"
-          className="w-full max-h-[400px] object-cover cursor-pointer"
-          onDoubleClick={handleLike}
-        />
+      {/* Post Media (1:1) */}
+      <div className="relative aspect-square w-full bg-black flex items-center justify-center cursor-pointer"
+        onClick={() => {
+          if (isVideoFile(image)) setShowVideoModal(true);
+        }}
+      >
+        {isVideoFile(image) && (
+          <span className="absolute top-2 right-2 text-white bg-black bg-opacity-60 rounded-full p-1 z-10">
+            <FaPlay className="w-4 h-4" />
+          </span>
+        )}
+        {isVideoFile(image) ? (
+          <video
+            src={image}
+            className="w-full h-full object-cover"
+            style={{ aspectRatio: '1/1' }}
+            muted
+            playsInline
+            poster={caption}
+          />
+        ) : (
+          <img
+            src={image}
+            alt="post"
+            className="w-full h-full object-cover"
+            style={{ aspectRatio: '1/1' }}
+          />
+        )}
       </div>
 
       {/* Post Actions */}
@@ -509,6 +540,34 @@ export default function Post({
             >
               Post
             </button>
+          </div>
+        </div>
+      )}
+      {/* Video Modal (9:16) */}
+      {showVideoModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+          <div className="relative flex flex-col items-center">
+            <span
+              className="absolute top-2 right-2 text-3xl text-white cursor-pointer z-50"
+              onClick={() => setShowVideoModal(false)}
+            >
+              &times;
+            </span>
+            <div className="flex items-center justify-center bg-black rounded" style={{ width: 360, height: 640 }}>
+              <video
+                src={image}
+                autoPlay
+                muted={isVideoMuted}
+                playsInline
+                className="object-cover w-full h-full rounded cursor-pointer"
+                style={{ aspectRatio: '9/16', width: 360, height: 640 }}
+                onClick={() => setIsVideoMuted((prev) => !prev)}
+              />
+              {/* Mute/unmute icon overlay */}
+              <span className="absolute bottom-4 right-4 bg-black bg-opacity-60 rounded-full p-2 z-10">
+                {isVideoMuted ? <FaVolumeMute className="w-6 h-6 text-white" /> : <FaVolumeUp className="w-6 h-6 text-white" />}
+              </span>
+            </div>
           </div>
         </div>
       )}
