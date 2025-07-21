@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { FaHeart, FaRegComment, FaBookmark,FaRegHeart, FaRegBookmark, FaVolumeMute, FaVolumeUp, FaPlay } from "react-icons/fa";
+import { FaHeart, FaRegComment, FaBookmark,FaRegHeart, FaRegBookmark, FaVolumeMute, FaVolumeUp, FaPlay, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import Picker from "@emoji-mart/react";
@@ -10,6 +10,7 @@ export default function Explore() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedPost, setSelectedPost] = useState(null);
+  const [currentIndex, setCurrentIndex] = useState(null);
   const [modalComments, setModalComments] = useState([]);
   const [modalReplyTo, setModalReplyTo] = useState(null);
   const [modalReplyInput, setModalReplyInput] = useState("");
@@ -38,6 +39,32 @@ export default function Explore() {
   function handleTouchEnd() {
     clearTimeout(touchTimeout.current);
   }
+
+  const handleNextPost = async () => {
+    if (currentIndex === null || currentIndex >= posts.length - 1) return;
+    const nextIndex = currentIndex + 1;
+    const nextPost = posts[nextIndex];
+    try {
+      const res = await axios.get(`http://localhost:5000/api/posts/single/${nextPost._id}`);
+      setSelectedPost(res.data);
+      setCurrentIndex(nextIndex);
+    } catch (err) {
+      console.error("Error fetching next post:", err);
+    }
+  };
+
+  const handlePreviousPost = async () => {
+    if (currentIndex === null || currentIndex <= 0) return;
+    const prevIndex = currentIndex - 1;
+    const prevPost = posts[prevIndex];
+    try {
+      const res = await axios.get(`http://localhost:5000/api/posts/single/${prevPost._id}`);
+      setSelectedPost(res.data);
+      setCurrentIndex(prevIndex);
+    } catch (err) {
+      console.error("Error fetching previous post:", err);
+    }
+  };
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -168,7 +195,10 @@ export default function Explore() {
             key={i}
             to={`/profile/${username}`}
             className="text-gray-600 hover:underline"
-            onClick={() => setSelectedPost && setSelectedPost(null)}
+            onClick={() => {
+              setSelectedPost(null);
+              setCurrentIndex(null);
+            }}
           >
             {part}
           </Link>
@@ -184,11 +214,12 @@ export default function Explore() {
     <div className="max-w-6xl mx-auto p-4">
       <h1 className="text-2xl font-bold mb-6">Explore</h1>
       <div className="grid grid-cols-3 gap-1 md:gap-2 lg:gap-4">
-        {posts.map((post) => (
+        {posts.map((post, index) => (
           <div
             key={post._id}
             className="relative group w-full aspect-square overflow-hidden cursor-pointer"
             onClick={async () => {
+              setCurrentIndex(index);
               const res = await axios.get(`http://localhost:5000/api/posts/single/${post._id}`);
               setSelectedPost(res.data);
             }}
@@ -225,11 +256,24 @@ export default function Explore() {
       {/* Modal (copied/adapted from Profile.jsx) */}
       {selectedPost && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          {/* Previous Button */}
+          {currentIndex > 0 && (
+            <button
+              onClick={handlePreviousPost}
+              className="absolute left-4 top-1/2 -translate-y-1/2 bg-gray-800 bg-opacity-50 text-white rounded-full p-2 z-50 hover:bg-opacity-75 transition"
+            >
+              <FaChevronLeft size={24} />
+            </button>
+          )}
+
           <div className="bg-white rounded shadow-md flex flex-row w-auto max-w-4xl relative overflow-hidden">
             {/* X Close Button */}
             <button
               className="absolute top-2 right-2 text-2xl text-gray-500 hover:text-black z-50 bg-white rounded-full p-1"
-              onClick={() => setSelectedPost(null)}
+              onClick={() => {
+                setSelectedPost(null);
+                setCurrentIndex(null);
+              }}
               title="Close"
             >
               &times;
@@ -270,7 +314,10 @@ export default function Explore() {
               </div>
             )}
             {/* Comments & Details Section (copied/adapted from Profile.jsx) */}
-            <div className="p-4 flex-1 flex flex-col min-w-[300px] max-w-[400px] h-[640px] relative">
+            <div
+              className="p-4 flex-1 flex flex-col min-w-[300px] max-w-[400px] relative"
+              style={{ height: isVideoFile(selectedPost.fileUrl) ? '640px' : '400px' }}
+            >
               <h2 className="font-semibold mb-1">{selectedPost.username}</h2>
               <p className="mb-2">{selectedPost.caption}</p>
               {/* Scrollable comments section */}
@@ -358,7 +405,10 @@ export default function Explore() {
                                             key={i}
                                             to={`/profile/${username}`}
                                             className="block text-gray-600 hover:underline p-1 rounded hover:bg-gray-100"
-                                            onClick={() => setSelectedPost(null)}
+                                            onClick={() => {
+                                              setSelectedPost(null);
+                                              setCurrentIndex(null);
+                                            }}
                                           >
                                             {username}
                                           </Link>
@@ -510,7 +560,10 @@ export default function Explore() {
                             key={i}
                             to={`/profile/${user.username}`}
                             className="flex items-center gap-3 p-1 rounded hover:bg-gray-100"
-                            onClick={() => setSelectedPost(null)}
+                            onClick={() => {
+                              setSelectedPost(null);
+                              setCurrentIndex(null);
+                            }}
                           >
                             <img
                               src={user.profilePic}
@@ -565,6 +618,15 @@ export default function Explore() {
               </div>
             </div>
           </div>
+          {/* Next Button */}
+          {currentIndex < posts.length - 1 && (
+            <button
+              onClick={handleNextPost}
+              className="absolute right-4 top-1/2 -translate-y-1/2 bg-gray-800 bg-opacity-50 text-white rounded-full p-2 z-50 hover:bg-opacity-75 transition"
+            >
+              <FaChevronRight size={24} />
+            </button>
+          )}
         </div>
       )}
     </div>
