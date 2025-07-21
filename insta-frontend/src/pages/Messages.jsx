@@ -1,8 +1,9 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useContext } from "react";
 import { FiSearch, FiPhone, FiVideo, FiInfo, FiX, FiMic } from "react-icons/fi";
 import EmojiPicker from "emoji-picker-react";
 import axios from "axios";
 import { io } from "socket.io-client";
+import { UnreadContext } from "../context/UnreadContext";
 
 const SOCKET_URL = "http://localhost:5000";
 
@@ -14,7 +15,9 @@ export default function Messages() {
   const [mute, setMute] = useState(false);
   const [following, setFollowing] = useState([]);
   const [myUsername, setMyUsername] = useState("");
+  const [unreadMap, setUnreadMap] = useState({}); // { username: true/false }
   const socketRef = useRef(null);
+  const { setUnreadUserCount } = useContext(UnreadContext);
 
   useEffect(() => {
     const username = localStorage.getItem("username");
@@ -40,12 +43,38 @@ export default function Messages() {
           messages: [...prevChat.messages, data],
         }));
       }
+      // Mark as unread in the sidebar
+      if (data.receiver === username) {
+        setUnreadMap(prev => ({ ...prev, [data.sender]: true }));
+      }
     });
     return () => {
       if (socketRef.current) socketRef.current.disconnect();
     };
     // eslint-disable-next-line
   }, [myUsername, selectedChat]);
+
+  // Check unread status for all followings
+  useEffect(() => {
+    if (!myUsername) return;
+    const fetchUnread = async () => {
+      const map = {};
+      for (const user of following) {
+        try {
+          const res = await axios.get(`http://localhost:5000/api/messages/${myUsername}/${user.username}`);
+          const hasUnread = (res.data.messages || []).some(msg => (msg.unreadBy || []).includes(myUsername));
+          map[user.username] = hasUnread;
+        } catch {}
+      }
+      setUnreadMap(map);
+    };
+    fetchUnread();
+    // eslint-disable-next-line
+  }, [following, myUsername]);
+
+  useEffect(() => {
+    setUnreadUserCount(Object.values(unreadMap).filter(Boolean).length);
+  }, [unreadMap, setUnreadUserCount]);
 
   const selectChat = async (user) => {
     try {
@@ -55,6 +84,12 @@ export default function Messages() {
         dp: user.profilePic ? `http://localhost:5000${user.profilePic}` : "https://ui-avatars.com/api/?name=" + user.username,
         messages: res.data.messages || [],
       });
+      // Mark all as read
+      await axios.post('http://localhost:5000/api/messages/mark-read', {
+        user1: myUsername,
+        user2: user.username,
+      });
+      setUnreadMap(prev => ({ ...prev, [user.username]: false }));
     } catch (err) {
       setSelectedChat({
         name: user.username,
@@ -122,7 +157,12 @@ export default function Messages() {
                 alt={user.username}
                 className="w-10 h-10 rounded-full object-cover"
               />
-              <div>{user.username}</div>
+              <div className="flex items-center gap-2">
+                <span>{user.username}</span>
+                {unreadMap[user.username] && (
+                  <span className="w-2 h-2 bg-blue-500 rounded-full inline-block ml-1"></span>
+                )}
+              </div>
             </div>
           ))}
         </div>

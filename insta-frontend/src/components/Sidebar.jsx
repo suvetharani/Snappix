@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Layout from "./Layout";
 import SearchBox from "./SearchBox";
@@ -25,6 +25,7 @@ import {
 } from "react-icons/fi";
 import ReportModal from "./ReportModal";
 import { FaInstagram, FaPlus } from "react-icons/fa";
+import { UnreadContext } from "../context/UnreadContext";
 
 export default function Sidebar({ isOpen, setIsOpen }) {
   const [foundUser, setFoundUser] = useState(null);
@@ -48,6 +49,8 @@ export default function Sidebar({ isOpen, setIsOpen }) {
   const [selectedFile, setSelectedFile] = useState(null);
   const [caption, setCaption] = useState("");
   const [uploading, setUploading] = useState(false);
+
+  const { unreadUserCount } = useContext(UnreadContext);
 
   useEffect(() => {
     if (!searchTerm.trim()) {
@@ -166,9 +169,14 @@ const removeRecent = (username) => {
 
             <Link
               to="/messages"
-              className="flex items-center gap-2 hover:bg-gray-100 px-2 py-2 rounded w-full"
+              className="flex items-center gap-2 hover:bg-gray-100 px-2 py-2 rounded w-full relative"
             >
               <FiMessageCircle /> {isOpen && !showSearch && "Messages"}
+              {unreadUserCount > 0 && (
+                <span className="absolute left-5 -top-1 bg-red-500 text-white text-xs font-bold rounded-full px-1.5 py-0.5 min-w-[18px] text-center">
+                  {unreadUserCount}
+                </span>
+              )}
             </Link>
 
             <Link

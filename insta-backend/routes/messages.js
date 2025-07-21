@@ -22,13 +22,32 @@ router.post('/send', async (req, res) => {
       });
     }
 
-    const newMessage = { sender, receiver, text };
+    const newMessage = { sender, receiver, text, unreadBy: [receiver] };
     conversation.messages.push(newMessage);
     await conversation.save();
 
     res.status(201).json(newMessage);
   } catch (err) {
     res.status(500).json({ error: 'Failed to send message' });
+  }
+});
+
+// Mark all messages as read in a conversation for a user
+router.post('/mark-read', async (req, res) => {
+  const { user1, user2 } = req.body;
+  try {
+    const conversation = await Conversation.findOne({
+      participants: { $all: [user1, user2] },
+    });
+    if (conversation) {
+      conversation.messages.forEach(msg => {
+        msg.unreadBy = msg.unreadBy.filter(u => u !== user1);
+      });
+      await conversation.save();
+    }
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to mark messages as read' });
   }
 });
 
