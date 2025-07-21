@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import { FaCog, FaPlus, FaTimes, FaTrash } from "react-icons/fa";
@@ -38,7 +38,20 @@ export default function Profile() {
   // Add state for saved posts
   const [savedPosts, setSavedPosts] = useState([]);
   const [savedLoading, setSavedLoading] = useState(false);
+  // Add state for showing likers dropdown in the modal
+  const [showModalLikers, setShowModalLikers] = useState(false);
+  const [modalLikers, setModalLikers] = useState([]);
+  // Add state for save status in the modal if not present
+  const [isSavedModal, setIsSavedModal] = useState(false);
+  // Add state for replying to comments in the modal
+  const [modalReplyTo, setModalReplyTo] = useState(null); // comment id being replied to
+  const [modalReplyInput, setModalReplyInput] = useState("");
+  const [modalComments, setModalComments] = useState([]);
+  // Add state for showing comment likers dropdown in the modal
+  const [showCommentLikers, setShowCommentLikers] = useState({}); // {commentId: bool}
+  const [commentLikers, setCommentLikers] = useState({}); // {commentId: [user]}
 
+  const commentInputRef = useRef(null);
 
   const handleUploadPost = async () => {
     if (!selectedFile) return;
@@ -176,9 +189,119 @@ useEffect(() => {
   }
 }, [activeTab]);
 
+// Add effect to fetch save status when modal opens
+useEffect(() => {
+  if (selectedPost) {
+    const fetchSaved = async () => {
+      try {
+        const res = await axios.get(`http://localhost:5000/api/posts/${localStorage.getItem("username")}/saved`);
+        setIsSavedModal(res.data.savedPosts.includes(selectedPost._id));
+      } catch (err) {
+        setIsSavedModal(false);
+      }
+    };
+    fetchSaved();
+  }
+}, [selectedPost]);
+
+// Save/unsave handler
+const handleModalSave = async () => {
+  try {
+    const res = await axios.post(`http://localhost:5000/api/posts/${selectedPost._id}/save`, {
+      username: localStorage.getItem("username"),
+    });
+    setIsSavedModal(res.data.savedPosts.includes(selectedPost._id));
+  } catch (err) {}
+};
+
+// Fetch comments when modal opens
+useEffect(() => {
+  if (selectedPost) {
+    setModalComments(selectedPost.comments || []);
+  }
+}, [selectedPost]);
+
+// Post a new comment or reply in modal
+const handleModalPostComment = async () => {
+  if (!selectedPost || modalReplyInput.trim() === "") return;
+  try {
+    if (modalReplyTo) {
+      // Reply to a comment
+      const res = await axios.post(`http://localhost:5000/api/posts/${selectedPost._id}/comments/${modalReplyTo}/replies`, {
+        username: localStorage.getItem("username"),
+        text: modalReplyInput.trim(),
+      });
+      setModalComments((prev) =>
+        prev.map((c) =>
+          c._id === modalReplyTo
+            ? { ...c, replies: [...(c.replies || []), res.data] }
+            : c
+        )
+      );
+      setModalReplyTo(null);
+    } else {
+      // New top-level comment
+      const res = await axios.post(`http://localhost:5000/api/posts/${selectedPost._id}/comments`, {
+        username: localStorage.getItem("username"),
+        text: modalReplyInput.trim(),
+      });
+      setModalComments((prev) => [...prev, res.data]);
+    }
+    setModalReplyInput("");
+  } catch (err) {}
+};
+
+// Like/unlike a comment in modal
+const handleModalCommentLike = async (commentId) => {
+  try {
+    const res = await axios.post(
+      `http://localhost:5000/api/posts/${selectedPost._id}/comments/${commentId}/like`,
+      { username: localStorage.getItem("username") }
+    );
+    setModalComments((prev) =>
+      prev.map((c) =>
+        c._id === commentId ? { ...c, likes: res.data.likes } : c
+      )
+    );
+  } catch (err) {}
+};
+
+// Like/unlike a reply in modal
+const handleModalReplyLike = async (commentId, replyId) => {
+  try {
+    const res = await axios.patch(
+      `http://localhost:5000/api/posts/${selectedPost._id}/comments/${commentId}/replies/${replyId}/like`,
+      { userId: localStorage.getItem("username") }
+    );
+    setModalComments((prevComments) =>
+      prevComments.map((comment) => {
+        if (comment._id === commentId) {
+          return {
+            ...comment,
+            replies: comment.replies.map((reply) =>
+              reply._id === replyId ? { ...reply, likes: res.data.likes } : reply
+            ),
+          };
+        }
+        return comment;
+      })
+    );
+  } catch (error) {}
+};
+
+// Toggle replies visibility in modal
+const [modalVisibleReplies, setModalVisibleReplies] = useState({});
+const toggleModalReplies = (commentId) => {
+  setModalVisibleReplies((prev) => ({
+    ...prev,
+    [commentId]: !prev[commentId],
+  }));
+};
+
 
   if (loading) return <div className="text-center p-10">Loading...</div>;
   if (!user) return <div className="text-center p-10 text-red-500">User not found.</div>;
+
 
   return (
     <main className="max-w-4xl mx-auto p-4">
@@ -267,7 +390,7 @@ useEffect(() => {
             posts.map((post, index) => (
               <div
                 key={index}
-                className="cursor-pointer"
+                className="cursor-pointer aspect-square overflow-hidden bg-black"
                 onClick={async () => {
                   const res = await axios.get(`http://localhost:5000/api/posts/single/${post._id}`);
                   setSelectedPost(res.data);
@@ -276,7 +399,8 @@ useEffect(() => {
                 <img
                   src={`http://localhost:5000${post.fileUrl}`}
                   alt={`Post ${index + 1}`}
-                  className="w-full h-48 object-cover"
+                  className="w-full h-full object-cover"
+                  style={{ aspectRatio: '1/1' }}
                 />
               </div>
             ))
@@ -295,7 +419,7 @@ useEffect(() => {
             savedPosts.map((post, index) => (
               <div
                 key={index}
-                className="cursor-pointer"
+                className="cursor-pointer aspect-square overflow-hidden bg-black"
                 onClick={async () => {
                   const res = await axios.get(`http://localhost:5000/api/posts/single/${post._id}`);
                   setSelectedPost(res.data);
@@ -304,7 +428,8 @@ useEffect(() => {
                 <img
                   src={`http://localhost:5000${post.fileUrl}`}
                   alt={`Saved Post ${index + 1}`}
-                  className="w-full h-48 object-cover"
+                  className="w-full h-full object-cover"
+                  style={{ aspectRatio: '1/1' }}
                 />
               </div>
             ))
@@ -357,47 +482,202 @@ useEffect(() => {
   </div>
 </div>
 
-
-            <img
-              src={`http://localhost:5000${selectedPost.fileUrl}`}
-              alt="Full"
-              className="w-full md:w-1/2 object-cover"
-            />
-
-            <div className="p-4 flex-1 flex flex-col">
+            {/* 1:1 Image */}
+            <div className="flex-shrink-0 flex items-center justify-center bg-black" style={{ width: 400, height: 400 }}>
+              <img
+                src={`http://localhost:5000${selectedPost.fileUrl}`}
+                alt="Full"
+                className="object-cover w-full h-full rounded"
+                style={{ aspectRatio: '1/1', width: 400, height: 400 }}
+              />
+            </div>
+            {/* Post details */}
+            <div className="p-4 flex-1 flex flex-col min-w-[300px] max-w-[400px]">
               <h2 className="font-semibold mb-2">{selectedPost.username}</h2>
               <p className="mb-4">{selectedPost.caption}</p>
-
-              <div className="flex-1 overflow-y-auto mb-4">
-                {selectedPost.comments?.length ? (
-                  selectedPost.comments.map((c, i) => (
-                    <div key={i} className="text-sm border-b pb-2 mb-2">
-                      <strong>{c.username}:</strong> {c.text}
-                    </div>
-                  ))
+              {/* Scrollable comments section */}
+              <div className="flex-1 overflow-y-auto mb-4 max-h-56 border-b pb-2">
+                {modalComments.length ? (
+                  modalComments.map((c) => {
+                    const isLiked = c.likes?.includes(localStorage.getItem("username"));
+                    return (
+                      <div key={c._id} className="mb-2 relative">
+                        <div className="flex items-start justify-between group">
+                          <div>
+                            <p>
+                              <strong>{c.username}</strong>: {c.text}
+                            </p>
+                          </div>
+                          <div className="flex flex-col items-center ml-2">
+                            <div className="flex items-start space-x-2 ml-2">
+                              <span
+                                className="text-xs text-blue-500 cursor-pointer"
+                                onClick={() => {
+                                  setModalReplyTo(c._id);
+                                  setModalReplyInput(`@${c.username} `);
+                                  setTimeout(() => commentInputRef.current && commentInputRef.current.focus(), 0);
+                                }}
+                              >
+                                Reply
+                              </span>
+                              <div className="flex flex-col items-center">
+                                <button onClick={() => handleModalCommentLike(c._id)}>
+                                  {isLiked ? (
+                                    <FaHeart className="text-red-500 text-sm" />
+                                  ) : (
+                                    <FaRegHeart className="text-sm" />
+                                  )}
+                                </button>
+                                <span
+                                  className="text-xs text-gray-600 cursor-pointer hover:underline"
+                                  onClick={async () => {
+                                    try {
+                                      const res = await axios.get(`http://localhost:5000/api/posts/${selectedPost._id}/comments/${c._id}/likers`);
+                                      setCommentLikers((prev) => ({ ...prev, [c._id]: res.data.likers }));
+                                      setShowCommentLikers((prev) => ({ ...Object.keys(prev).reduce((acc, key) => ({ ...acc, [key]: false }), {}), [c._id]: !prev[c._id] }));
+                                    } catch (err) {}
+                                  }}
+                                >
+                                  {c.likes?.length || 0}
+                                </span>
+                                {showCommentLikers[c._id] && commentLikers[c._id]?.length > 0 && (
+                                  <div className="absolute top-8 left-0 bg-white border shadow-md rounded-md text-xs w-48 max-h-32 overflow-y-auto p-2 z-50">
+                                    <p className="font-semibold mb-1">Liked by:</p>
+                                    {commentLikers[c._id].map((user, i) => (
+                                      <Link
+                                        key={i}
+                                        to={`/profile/${user.username}`}
+                                        className="flex items-center gap-2 p-1 rounded hover:bg-gray-100"
+                                      >
+                                        <img
+                                          src={user.profilePic}
+                                          alt={user.username}
+                                          className="w-6 h-6 rounded-full object-cover"
+                                        />
+                                        <span className="text-blue-500 hover:underline">{user.username}</span>
+                                      </Link>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        {/* Replies */}
+                        {c.replies && c.replies.length > 0 && (
+                          <div className="ml-4 mt-1 border-l border-gray-200 pl-3 space-y-2">
+                            <span
+                              onClick={() => toggleModalReplies(c._id)}
+                              className="text-xs text-blue-500 cursor-pointer"
+                            >
+                              {modalVisibleReplies[c._id]
+                                ? `Hide replies`
+                                : `View all ${c.replies.length} replies`}
+                            </span>
+                            {modalVisibleReplies[c._id] &&
+                              c.replies.map((r) => {
+                                const isReplyLiked = r.likes?.includes(localStorage.getItem("username"));
+                                return (
+                                  <div key={r._id} className="flex items-start justify-between group">
+                                    <p className="text-sm text-gray-700">
+                                      <strong>{r.username}</strong>: {r.text}
+                                    </p>
+                                    <div className="flex items-start space-x-2 ml-2">
+                                      <span
+                                        className="text-xs text-blue-500 cursor-pointer"
+                                        onClick={() => {
+                                          setModalReplyTo(c._id);
+                                          setModalReplyInput(`@${r.username} `);
+                                          setTimeout(() => commentInputRef.current && commentInputRef.current.focus(), 0);
+                                        }}
+                                      >
+                                        Reply
+                                      </span>
+                                      <div className="flex flex-col items-center">
+                                        <button onClick={() => handleModalReplyLike(c._id, r._id)}>
+                                          {isReplyLiked ? (
+                                            <FaHeart className="text-red-500 text-sm" />
+                                          ) : (
+                                            <FaRegHeart className="text-sm" />
+                                          )}
+                                        </button>
+                                        <span className="text-xs text-gray-600 cursor-pointer hover:underline">
+                                          {r.likes?.length || 0}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
                 ) : (
                   <p className="text-gray-400 text-sm">No comments yet.</p>
                 )}
               </div>
-<div className="flex items-center justify-between px-4 py-2">
-  {/* Like Button */}
-  <button
-    className={`text-xl transition-colors duration-200 ${
-      isLiked ? "text-red-500" : "text-gray-600"
-    }`}
-    onClick={() => setIsLiked(!isLiked)}
-  >
-    {isLiked ? <FaHeart /> : <FaRegHeart />}
-  </button>
-
-  {/* Save Button */}
-  <button
-    className="text-xl text-gray-600 hover:opacity-80"
-    onClick={() => setIsSaved(!isSaved)}
-  >
-    {isSaved ? <FaBookmark /> : <FaRegBookmark />}
-  </button>
-</div>
+              {/* Like, Save, and Like Count */}
+              <div className="flex items-center gap-2 px-2 py-2 relative">
+                <button
+                  className={`text-2xl transition-colors duration-200 ${isLiked ? "text-red-500" : "text-gray-600"}`}
+                  onClick={async () => {
+                    try {
+                      await axios.post(`http://localhost:5000/api/posts/${selectedPost._id}/like`, {
+                        username: localStorage.getItem("username"),
+                      });
+                      setIsLiked((prev) => !prev);
+                      setSelectedPost((prev) => ({
+                        ...prev,
+                        likes: prev.likes?.includes(localStorage.getItem("username"))
+                          ? prev.likes.filter(u => u !== localStorage.getItem("username"))
+                          : [...(prev.likes || []), localStorage.getItem("username")],
+                      }));
+                    } catch (err) {}
+                  }}
+                >
+                  {isLiked ? <FaHeart /> : <FaRegHeart />}
+                </button>
+                <span
+                  className="text-sm cursor-pointer hover:underline"
+                  onClick={async () => {
+                    try {
+                      const res = await axios.get(`http://localhost:5000/api/posts/${selectedPost._id}/likers`);
+                      setModalLikers(res.data.likers);
+                      setShowModalLikers((prev) => !prev);
+                    } catch (err) {}
+                  }}
+                >
+                  {selectedPost.likes?.length || 0} likes
+                </span>
+                {showModalLikers && modalLikers.length > 0 && (
+                  <div className="absolute top-10 left-0 bg-white border shadow-md rounded-md text-sm w-64 max-h-60 overflow-y-auto p-3 z-50">
+                    <p className="font-semibold mb-2">Liked by:</p>
+                    {modalLikers.map((user, i) => (
+                      <Link
+                        key={i}
+                        to={`/profile/${user.username}`}
+                        className="flex items-center gap-3 p-1 rounded hover:bg-gray-100"
+                      >
+                        <img
+                          src={user.profilePic}
+                          alt={user.username}
+                          className="w-8 h-8 rounded-full object-cover"
+                        />
+                        <span className="text-blue-500 hover:underline">{user.username}</span>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+                <button
+                  className="ml-auto text-2xl text-gray-600 hover:opacity-80"
+                  onClick={handleModalSave}
+                >
+                  {isSavedModal ? <FaBookmark /> : <FaRegBookmark />}
+                </button>
+              </div>
+              {/* Save Button and Comment input remain unchanged */}
 
 
               <div className="flex items-center border-t pt-2 relative">
@@ -417,21 +697,17 @@ useEffect(() => {
                 )}
 
                 <input
+                  ref={commentInputRef}
                   type="text"
-                  value={commentInput}
-                  onChange={(e) => {
-                    setCommentInput(e.target.value);
-                    setIsPostDisabled(e.target.value.trim() === "");
-                  }}
-                  placeholder="Add a comment..."
+                  value={modalReplyInput}
+                  onChange={(e) => setModalReplyInput(e.target.value)}
+                  placeholder={modalReplyTo ? `Replying...` : "Add a comment..."}
                   className="flex-1 border rounded px-3 py-2"
                 />
                 <button
-                  onClick={handlePostComment}
-                  disabled={isPostDisabled}
-                  className={`ml-2 px-4 py-2 rounded text-white ${
-                    isPostDisabled ? "bg-gray-400 cursor-not-allowed" : "bg-blue-500"
-                  }`}
+                  onClick={handleModalPostComment}
+                  disabled={modalReplyInput.trim() === ""}
+                  className={`ml-2 px-4 py-2 rounded text-white ${modalReplyInput.trim() === "" ? "bg-gray-400 cursor-not-allowed" : "bg-blue-500"}`}
                 >
                   Post
                 </button>
