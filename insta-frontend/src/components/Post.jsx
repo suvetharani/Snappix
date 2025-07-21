@@ -49,6 +49,8 @@ export default function Post({
 
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [isVideoMuted, setIsVideoMuted] = useState(true);
+  const videoRef = useRef(null);
+  let touchTimeout = useRef();
 
 
   const [comments, setComments] = useState(
@@ -225,6 +227,18 @@ export default function Post({
     }
   };
 
+  function handleTouchStart() {
+    touchTimeout.current = setTimeout(() => {
+      if (videoRef.current) {
+        if (videoRef.current.paused) videoRef.current.play();
+        else videoRef.current.pause();
+      }
+    }, 400); // 400ms for long press
+  }
+  function handleTouchEnd() {
+    clearTimeout(touchTimeout.current);
+  }
+
   return (
     <div className="bg-white border rounded-md shadow mb-6 w-full max-w-md mx-auto relative">
       {/* Post Header */}
@@ -275,6 +289,7 @@ export default function Post({
             className="w-full h-full object-cover"
             style={{ aspectRatio: '1/1' }}
             muted
+            autoPlay
             playsInline
             poster={caption}
           />
@@ -382,7 +397,11 @@ export default function Post({
                             className="font-semibold hover:underline"
                           >
                             {c.username}
-                          </Link>{`: `}
+                          </Link>
+                          {c.username === username && (
+                            <span className="ml-1 text-xs text-gray-500 font-semibold">author</span>
+                          )}
+                          {`: `}
                           {c.text}
                         </p>
                       </div>
@@ -445,7 +464,11 @@ export default function Post({
                                       className="font-semibold hover:underline"
                                     >
                                       {r.username}
-                                    </Link>{`: `}
+                                    </Link>
+                                    {r.username === username && (
+                                      <span className="ml-1 text-xs text-blue-500 font-semibold">author</span>
+                                    )}
+                                    {`: `}
                                     {r.text}
                                   </p>
                                   <div className="flex items-start space-x-2 ml-2">
@@ -555,16 +578,21 @@ export default function Post({
             </span>
             <div className="flex items-center justify-center bg-black rounded" style={{ width: 360, height: 640 }}>
               <video
+                ref={videoRef}
                 src={image}
                 autoPlay
-                muted={isVideoMuted}
                 playsInline
-                className="object-cover w-full h-full rounded cursor-pointer"
+                muted={isVideoMuted}
+                className="object-cover w-full h-full rounded"
                 style={{ aspectRatio: '9/16', width: 360, height: 640 }}
-                onClick={() => setIsVideoMuted((prev) => !prev)}
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
               />
               {/* Mute/unmute icon overlay */}
-              <span className="absolute bottom-4 right-4 bg-black bg-opacity-60 rounded-full p-2 z-10">
+              <span
+                className="absolute bottom-4 right-4 bg-black bg-opacity-60 rounded-full p-2 z-10"
+                onClick={() => setIsVideoMuted((prev) => !prev)}
+              >
                 {isVideoMuted ? <FaVolumeMute className="w-6 h-6 text-white" /> : <FaVolumeUp className="w-6 h-6 text-white" />}
               </span>
             </div>
