@@ -14,6 +14,7 @@ const MessageSchema = new mongoose.Schema({
     required: true,
   },
   unreadBy: [{ type: String }], // usernames who haven't read this message
+  deletedFor: [{ type: String }], // usernames who deleted this message
 }, { timestamps: true });
 
 const ConversationSchema = new mongoose.Schema({
@@ -22,6 +23,7 @@ const ConversationSchema = new mongoose.Schema({
     required: true,
   },
   messages: [MessageSchema],
+  deletedBy: [{ type: String }], // usernames who deleted this chat (legacy, can be kept for now)
 }, { timestamps: true });
 
 module.exports = mongoose.model('Conversation', ConversationSchema); 

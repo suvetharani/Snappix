@@ -22,6 +22,11 @@ router.post('/send', async (req, res) => {
       });
     }
 
+    // Remove sender from deletedBy if present (so chat reappears for them)
+    if (conversation.deletedBy && conversation.deletedBy.includes(sender)) {
+      conversation.deletedBy = conversation.deletedBy.filter(u => u !== sender);
+    }
+
     const newMessage = { sender, receiver, text, unreadBy: [receiver] };
     conversation.messages.push(newMessage);
     await conversation.save();
@@ -51,6 +56,27 @@ router.post('/mark-read', async (req, res) => {
   }
 });
 
+// Delete chat for a user (delete all messages for user1)
+router.post('/delete-chat', async (req, res) => {
+  const { user1, user2 } = req.body;
+  try {
+    const conversation = await Conversation.findOne({
+      participants: { $all: [user1, user2] },
+    });
+    if (conversation) {
+      conversation.messages.forEach(msg => {
+        if (!msg.deletedFor.includes(user1)) {
+          msg.deletedFor.push(user1);
+        }
+      });
+      await conversation.save();
+    }
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete chat' });
+  }
+});
+
 // Get conversation between two users
 router.get('/:user1/:user2', async (req, res) => {
   const { user1, user2 } = req.params;
@@ -61,7 +87,12 @@ router.get('/:user1/:user2', async (req, res) => {
     if (!conversation) {
       return res.json({ messages: [] });
     }
-    res.json(conversation);
+    // Only return messages not deleted for user1
+    const filtered = {
+      ...conversation.toObject(),
+      messages: conversation.messages.filter(msg => !msg.deletedFor.includes(user1)),
+    };
+    res.json(filtered);
   } catch (err) {
     res.status(500).json({ error: 'Failed to get conversation' });
   }

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useContext } from "react";
-import { FiSearch, FiPhone, FiVideo, FiInfo, FiX, FiMic } from "react-icons/fi";
+import { FiSearch, FiPhone, FiVideo, FiInfo, FiX, FiMic, FiBellOff } from "react-icons/fi";
 import EmojiPicker from "emoji-picker-react";
 import axios from "axios";
 import { io } from "socket.io-client";
@@ -15,9 +15,28 @@ export default function Messages() {
   const [mute, setMute] = useState(false);
   const [following, setFollowing] = useState([]);
   const [myUsername, setMyUsername] = useState("");
-  const [unreadMap, setUnreadMap] = useState({}); // { username: true/false }
+  const [unreadMap, setUnreadMap] = useState({});
+  const [mutedUsers, setMutedUsers] = useState(() => {
+    const stored = localStorage.getItem("mutedUsers");
+    return stored ? JSON.parse(stored) : [];
+  });
   const socketRef = useRef(null);
+  const messagesEndRef = useRef(null);
   const { setUnreadUserCount } = useContext(UnreadContext);
+
+  // Update mute state when selectedChat changes
+  useEffect(() => {
+    if (selectedChat) {
+      setMute(mutedUsers.includes(selectedChat.name));
+    }
+  }, [selectedChat, mutedUsers]);
+
+  // Update unread user count, excluding muted users
+  useEffect(() => {
+    const count = Object.entries(unreadMap)
+      .filter(([username, val]) => val && !mutedUsers.includes(username)).length;
+    setUnreadUserCount(count);
+  }, [unreadMap, setUnreadUserCount, mutedUsers]);
 
   useEffect(() => {
     const username = localStorage.getItem("username");
@@ -43,8 +62,8 @@ export default function Messages() {
           messages: [...prevChat.messages, data],
         }));
       }
-      // Mark as unread in the sidebar
-      if (data.receiver === username) {
+      // Mark as unread in the sidebar (unless muted)
+      if (data.receiver === username && !mutedUsers.includes(data.sender)) {
         setUnreadMap(prev => ({ ...prev, [data.sender]: true }));
       }
     });
@@ -52,7 +71,7 @@ export default function Messages() {
       if (socketRef.current) socketRef.current.disconnect();
     };
     // eslint-disable-next-line
-  }, [myUsername, selectedChat]);
+  }, [myUsername, selectedChat, mutedUsers]);
 
   // Check unread status for all followings
   useEffect(() => {
@@ -72,9 +91,12 @@ export default function Messages() {
     // eslint-disable-next-line
   }, [following, myUsername]);
 
+  // After selectedChat.messages changes, scroll to bottom
   useEffect(() => {
-    setUnreadUserCount(Object.values(unreadMap).filter(Boolean).length);
-  }, [unreadMap, setUnreadUserCount]);
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollTop = messagesEndRef.current.scrollHeight;
+    }
+  }, [selectedChat && selectedChat.messages && selectedChat.messages.length]);
 
   const selectChat = async (user) => {
     try {
@@ -100,6 +122,20 @@ export default function Messages() {
     setShowDetails(false);
   };
 
+  // Toggle mute for the selected chat
+  const handleMuteToggle = () => {
+    if (!selectedChat) return;
+    let updated;
+    if (mute) {
+      updated = mutedUsers.filter(u => u !== selectedChat.name);
+    } else {
+      updated = [...mutedUsers, selectedChat.name];
+    }
+    setMutedUsers(updated);
+    localStorage.setItem("mutedUsers", JSON.stringify(updated));
+    setMute(!mute);
+  };
+
   const sendMessage = async () => {
     if (message.trim() && selectedChat) {
       try {
@@ -118,10 +154,26 @@ export default function Messages() {
           socketRef.current.emit("send_message", newMessage);
         }
         setMessage('');
-        setShowEmoji(false);
+      setShowEmoji(false);
       } catch (err) {
         console.error('Failed to send message:', err);
       }
+    }
+  };
+
+  // Delete chat for current user
+  const handleDeleteChat = async () => {
+    if (!selectedChat) return;
+    try {
+      await axios.post('http://localhost:5000/api/messages/delete-chat', {
+        user1: myUsername,
+        user2: selectedChat.name,
+      });
+      setSelectedChat(null);
+      setUnreadMap(prev => ({ ...prev, [selectedChat.name]: false }));
+      setFollowing(following.filter(u => u.username !== selectedChat.name ? true : true)); // Optionally, you can filter out the chat from the sidebar if you want
+    } catch (err) {
+      alert('Failed to delete chat');
     }
   };
 
@@ -157,12 +209,13 @@ export default function Messages() {
                 alt={user.username}
                 className="w-10 h-10 rounded-full object-cover"
               />
-              <div className="flex items-center gap-2">
-                <span>{user.username}</span>
-                {unreadMap[user.username] && (
-                  <span className="w-2 h-2 bg-blue-500 rounded-full inline-block ml-1"></span>
-                )}
-              </div>
+              <span>{user.username}</span>
+              {unreadMap[user.username] && !mutedUsers.includes(user.username) && (
+                <span className="w-2 h-2 bg-blue-500 rounded-full inline-block ml-1"></span>
+              )}
+              {mutedUsers.includes(user.username) && (
+                <FiBellOff className="text-gray-400 ml-auto" title="Muted" />
+              )}
             </div>
           ))}
         </div>
@@ -180,7 +233,12 @@ export default function Messages() {
                   alt={selectedChat.name}
                   className="w-10 h-10 rounded-full object-cover"
                 />
-                <span className="font-semibold">{selectedChat.name}</span>
+                <span
+                  className="font-semibold cursor-pointer hover:underline"
+                  onClick={() => window.location.href = `/profile/${selectedChat.name}`}
+                >
+                  {selectedChat.name}
+                </span>
               </div>
               <div className="flex items-center gap-4 text-xl">
                 <FiPhone className="cursor-pointer" />
@@ -193,7 +251,7 @@ export default function Messages() {
             </div>
 
             {/* Messages */}
-            <div className="flex-1 p-4 overflow-y-auto">
+            <div className="flex-1 p-4 overflow-y-auto" ref={messagesEndRef}>
               {selectedChat.messages.map((msg, i) => (
                 <div
                   key={i}
@@ -267,7 +325,7 @@ export default function Messages() {
                     <input
                       type="checkbox"
                       checked={mute}
-                      onChange={() => setMute(!mute)}
+                      onChange={handleMuteToggle}
                       className="sr-only"
                     />
                     <div
@@ -283,14 +341,14 @@ export default function Messages() {
                     </div>
                   </label>
                 </div>
+                <button className="w-full text-left py-2 hover:bg-gray-100 text-red-500" onClick={handleDeleteChat}>
+                  Delete Chat
+                </button>
                 <button className="w-full text-left py-2 hover:bg-gray-100 text-red-500">
                   Report
                 </button>
                 <button className="w-full text-left py-2 hover:bg-gray-100 text-red-500">
                   Block
-                </button>
-                <button className="w-full text-left py-2 hover:bg-gray-100 text-red-500">
-                  Delete Chat
                 </button>
               </div>
             )}
