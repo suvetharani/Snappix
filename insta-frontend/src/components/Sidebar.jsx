@@ -129,22 +129,23 @@ const removeRecent = (username) => {
   }, [darkMode]);
 
   const handleLogout = () => {
-    alert("Logged out!");
-    navigate("/");
+    localStorage.removeItem("username");
+    window.location.href = "/login";
   };
 
   return (
     <>
+      {/* Sidebar for tablet and up */}
       {!isOpen && (
         <button
-          className="fixed top-4 left-4 z-50 bg-white dark:bg-black dark:text-white rounded p-2 shadow border dark:border-gray-800"
+          className="fixed top-4 left-4 z-50 bg-white dark:bg-black dark:text-white rounded p-2 shadow border dark:border-gray-800 tablet:block hidden"
           onClick={() => setIsOpen(true)}
         >
           <FiMenu className="text-2xl" />
         </button>
       )}
       <aside
-        className={`flex flex-col justify-between h-screen ${showSearch ? 'w-20' : 'w-64'} fixed left-0 top-0 z-50 p-4 border-r bg-white dark:bg-black dark:border-gray-800 dark:text-white transition-all duration-300
+        className={`hidden tablet:flex flex-col justify-between h-screen ${showSearch ? 'w-20' : 'w-64'} fixed left-0 top-0 z-50 p-4 border-r bg-white dark:bg-black dark:border-gray-800 dark:text-white transition-all duration-300
           ${isOpen ? "translate-x-0" : "-translate-x-full"}`}
         style={{ pointerEvents: "auto" }}
       >
@@ -169,7 +170,6 @@ const removeRecent = (username) => {
               {isOpen ? <FiX /> : <FiMenu />}
             </button>
           </div>
-
           <nav className={`flex flex-col gap-4 ${isOpen ? "items-start" : "items-center"}`}>
 
             <Link
@@ -431,6 +431,41 @@ const removeRecent = (username) => {
           )}
         </div>
       </aside>
+
+      {/* Bottom nav for mobile/tablet (<= 750px) */}
+      <nav className="fixed bottom-0 left-0 w-full flex justify-between items-center bg-white dark:bg-black border-t dark:border-gray-800 px-2 py-1 z-50 tablet:hidden">
+        <Link to="/home" className="flex-1 flex flex-col items-center justify-center py-2">
+          <FiHome className="text-2xl" />
+        </Link>
+        <Link to="/explore" className="flex-1 flex flex-col items-center justify-center py-2">
+          <FiCompass className="text-2xl" />
+        </Link>
+        <Link to="/reels" className="flex-1 flex flex-col items-center justify-center py-2">
+          <FiFilm className="text-2xl" />
+        </Link>
+        <button onClick={() => setShowCreate(!showCreate)} className="flex-1 flex flex-col items-center justify-center py-2">
+          <FiEdit3 className="text-2xl" />
+        </button>
+        <Link to="/messages" className="flex-1 flex flex-col items-center justify-center py-2 relative">
+          <FiMessageCircle className="text-2xl" />
+          {unreadUserCount > 0 && (
+            <span className="absolute top-1 right-2 bg-red-500 text-white text-xs font-bold rounded-full px-1.5 py-0.5 min-w-[18px] text-center">
+              {unreadUserCount}
+            </span>
+          )}
+        </Link>
+        <Link to={`/profile/${localStorage.getItem("username")}`} className="flex-1 flex flex-col items-center justify-center py-2">
+          {currentUserProfile && currentUserProfile.profilePic ? (
+            <img
+              src={`http://localhost:5000${currentUserProfile.profilePic}`}
+              alt={currentUserProfile.username}
+              className="w-7 h-7 rounded-full object-cover border"
+            />
+          ) : (
+            <FiUser className="text-2xl" />
+          )}
+        </Link>
+      </nav>
       {showSearch && isOpen && (
         <div className="fixed top-0 left-20 h-screen w-[397px] bg-white dark:bg-neutral-900 dark:text-white border-x dark:border-gray-800 rounded-r-2xl shadow-lg z-40 p-4 flex flex-col transition-all duration-300">
           <h2 className="text-2xl font-bold mt-4 mb-6 px-2">Search</h2>

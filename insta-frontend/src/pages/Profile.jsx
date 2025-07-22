@@ -366,7 +366,7 @@ function handleTouchEnd() {
 
 
   return (
-    <main className="max-w-4xl mx-auto p-4 bg-white dark:bg-black dark:text-white min-h-screen transition-colors duration-300 w-full min-w-0">
+    <main className="max-w-4xl min-w-[330px] mx-auto p-4 bg-white dark:bg-black dark:text-white min-h-screen transition-colors duration-300 w-full min-w-0">
       {/* Profile Header */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-8 mb-4">
         <img

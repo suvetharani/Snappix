@@ -380,7 +380,7 @@ export default function Post({
   }
 
   return (
-    <div className="bg-white dark:bg-black dark:border-gray-800 dark:text-white border rounded-md shadow mb-6 w-full max-w-md mx-auto relative">
+    <div className="bg-white dark:bg-black dark:border-gray-800 dark:text-white border rounded-md shadow mb-6 w-full max-w-md min-w-[330px] mx-auto relative">
       {/* Post Header */}
       <div className="flex justify-between items-center px-4 py-2">
         <div className="flex items-center">
