@@ -22,7 +22,7 @@ export default function Notifications() {
   };
 
   return (
-    <main className="max-w-xl mx-auto p-4">
+    <main className="max-w-xl mx-auto p-4 bg-white dark:bg-black dark:text-white min-h-screen transition-colors duration-300 w-full min-w-0">
       <h1 className="text-2xl font-semibold mb-6">Notifications</h1>
 
       {Object.entries(notifications).map(([section, items]) => (
@@ -32,7 +32,7 @@ export default function Notifications() {
             {items.map((item) => (
               <div
                 key={item.id}
-                className="flex items-center justify-between"
+                className="flex items-center justify-between bg-white dark:bg-neutral-900 dark:text-white rounded shadow-sm p-2"
               >
                 <div className="flex items-center gap-3">
                   <img

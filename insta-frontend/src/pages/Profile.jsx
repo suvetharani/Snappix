@@ -366,7 +366,7 @@ function handleTouchEnd() {
 
 
   return (
-    <main className="max-w-4xl mx-auto p-4">
+    <main className="max-w-4xl mx-auto p-4 bg-white dark:bg-black dark:text-white min-h-screen transition-colors duration-300 w-full min-w-0">
       {/* Profile Header */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-8 mb-4">
         <img
@@ -518,41 +518,41 @@ function handleTouchEnd() {
 
       {/* Post Viewer Modal */}
       {selectedPost && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded shadow-md flex flex-row w-auto max-w-4xl relative overflow-hidden">
+        <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-black dark:text-white rounded shadow-md flex flex-row w-auto max-w-4xl relative overflow-hidden">
             {/* Three Dots Dropdown Button */}
             <div className="absolute top-2 right-2 z-50">
-    <button
+              <button
                 className="text-2xl text-gray-500 hover:text-black"
-      onClick={() => setShowDropdown(prev => !prev)}
-      title="Options"
-    >
+                onClick={() => setShowDropdown(prev => !prev)}
+                title="Options"
+              >
                 <FaEllipsisV />
-    </button>
-{showDropdown && (
-  <div className="absolute right-0 mt-2 w-32 bg-white border rounded shadow-lg z-50">
-    {selectedPost.username === localStorage.getItem("username") && (
-      <button
-        onClick={() => {
-          setShowDeleteConfirm(true);
-          setShowDropdown(false);
-        }}
-        className="w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600"
-      >
-        Delete
-      </button>
-    )}
-    <button
-      onClick={() => {
-        setShowDropdown(false);
+              </button>
+              {showDropdown && (
+                <div className="absolute right-0 mt-2 w-32 bg-white dark:bg-neutral-900 border dark:border-gray-800 rounded shadow-lg z-50">
+                  {selectedPost.username === localStorage.getItem("username") && (
+                    <button
+                      onClick={() => {
+                        setShowDeleteConfirm(true);
+                        setShowDropdown(false);
+                      }}
+                      className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 text-red-600"
+                    >
+                      Delete
+                    </button>
+                  )}
+                  <button
+                    onClick={() => {
+                      setShowDropdown(false);
                       setSelectedPost(null);
-      }}
-      className="w-full text-left px-4 py-2 hover:bg-gray-100"
-    >
-      Cancel
-    </button>
-  </div>
-)}
+                    }}
+                    className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
   </div>
             {/* Image Section */}
             {isVideoFile(selectedPost.fileUrl) ? (
@@ -869,7 +869,7 @@ function handleTouchEnd() {
                     </button>
                   </div>
                   {/* Comment input */}
-                  <div className="flex items-center border-t pt-1 relative mt-2">
+                  <div className="flex items-center border-t pt-1 relative dark:border-gray-800 bg-white dark:bg-black">
                     <button
                       onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                       className="text-2xl mr-2"
@@ -891,12 +891,12 @@ function handleTouchEnd() {
                       value={modalReplyInput}
                       onChange={(e) => setModalReplyInput(e.target.value)}
                       placeholder={modalReplyTo ? `Replying...` : "Add a comment..."}
-                      className="flex-1 border rounded px-2 py-1"
+                      className="flex-1 border rounded px-2 py-1 bg-white dark:bg-neutral-900 dark:text-white border-gray-300 dark:border-gray-700"
                     />
                     <button
                       onClick={handleModalPostComment}
                       disabled={modalReplyInput.trim() === ""}
-                      className={`ml-2 px-3 py-1 rounded text-white ${modalReplyInput.trim() === "" ? "bg-gray-400 cursor-not-allowed" : "bg-blue-500"}`}
+                      className={`ml-2 px-3 py-1 rounded text-white ${modalReplyInput.trim() === "" ? "bg-gray-400 cursor-not-allowed" : "bg-blue-500 dark:bg-blue-600"}`}
                     >
                       Post
                     </button>
@@ -1177,7 +1177,7 @@ function handleTouchEnd() {
                 </button>
               </div>
                 {/* Comment input */}
-                <div className="flex items-center border-t pt-1 relative">
+                <div className="flex items-center border-t pt-1 relative dark:border-gray-800 bg-white dark:bg-black">
                 <button
                   onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                   className="text-2xl mr-2"
@@ -1199,12 +1199,12 @@ function handleTouchEnd() {
                   value={modalReplyInput}
                   onChange={(e) => setModalReplyInput(e.target.value)}
                   placeholder={modalReplyTo ? `Replying...` : "Add a comment..."}
-                    className="flex-1 border rounded px-2 py-1"
+                    className="flex-1 border rounded px-2 py-1 bg-white dark:bg-neutral-900 dark:text-white border-gray-300 dark:border-gray-700"
                 />
                 <button
                   onClick={handleModalPostComment}
                   disabled={modalReplyInput.trim() === ""}
-                    className={`ml-2 px-3 py-1 rounded text-white ${modalReplyInput.trim() === "" ? "bg-gray-400 cursor-not-allowed" : "bg-blue-500"}`}
+                    className={`ml-2 px-3 py-1 rounded text-white ${modalReplyInput.trim() === "" ? "bg-gray-400 cursor-not-allowed" : "bg-blue-500 dark:bg-blue-600"}`}
                 >
                   Post
                 </button>
@@ -1215,8 +1215,8 @@ function handleTouchEnd() {
 
           {/* Delete Confirmation */}
           {showDeleteConfirm && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white rounded p-6 w-80 text-center">
+            <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
+              <div className="bg-white dark:bg-neutral-900 dark:text-white rounded p-6 w-80 text-center">
                 <h3 className="text-lg font-semibold mb-4">Delete Post</h3>
                 <p className="mb-4">Are you sure you want to delete this post?</p>
                 <div className="flex justify-end gap-4">
@@ -1240,8 +1240,8 @@ function handleTouchEnd() {
       )}
       {/* Modals */}
       {showNewModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center">
-          <div className="bg-white p-6 rounded shadow-md flex flex-col gap-4">
+        <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center">
+          <div className="bg-white dark:bg-neutral-900 dark:text-white p-6 rounded shadow-md flex flex-col gap-4">
             <button
               onClick={() => {
                 setUploadType("post");
@@ -1283,8 +1283,8 @@ function handleTouchEnd() {
       />
 
       {selectedFile && showCaptionModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center">
-          <div className="bg-white p-6 rounded shadow-md flex flex-col gap-4">
+        <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center">
+          <div className="bg-white dark:bg-neutral-900 dark:text-white p-6 rounded shadow-md flex flex-col gap-4">
             <p>Write a caption:</p>
             <textarea
               value={caption}
@@ -1312,8 +1312,8 @@ function handleTouchEnd() {
       )}
 
       {showSettings && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center">
-          <div className="bg-white p-6 rounded shadow-md flex flex-col gap-4">
+        <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center">
+          <div className="bg-white dark:bg-neutral-900 dark:text-white p-6 rounded shadow-md flex flex-col gap-4">
             {user.username === localStorage.getItem("username") && (
               <button
                 onClick={handleLogout}
@@ -1333,8 +1333,8 @@ function handleTouchEnd() {
       )}
       {/* Followers Modal */}
 {showFollowers && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div className="bg-white p-6 rounded shadow-md w-80">
+  <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
+    <div className="bg-white dark:bg-neutral-900 dark:text-white p-6 rounded shadow-md w-80">
       <h3 className="text-lg font-semibold mb-4">Followers</h3>
       {user.followers.length === 0 ? (
         <p className="text-gray-500">No followers yet.</p>
@@ -1372,8 +1372,8 @@ function handleTouchEnd() {
 )}
 
 {showFollowing && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div className="bg-white p-6 rounded shadow-md w-80">
+  <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
+    <div className="bg-white dark:bg-neutral-900 dark:text-white p-6 rounded shadow-md w-80">
       <h3 className="text-lg font-semibold mb-4">Following</h3>
       {user.following.length === 0 ? (
         <p className="text-gray-500">Not following anyone yet.</p>

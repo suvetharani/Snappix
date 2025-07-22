@@ -2,8 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  @apply bg-gray-100;
+body, html {
+  @apply bg-white;
+  @apply text-gray-900;
+}
+
+html.dark, html.dark body, body.dark {
+  @apply bg-black text-gray-100 min-h-screen w-full;
 }
 @layer base {
   .font-logo {

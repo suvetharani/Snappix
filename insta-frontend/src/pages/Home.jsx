@@ -39,7 +39,7 @@ profile: post.profilePic
   }, []);
 
   return (
-    <div className="w-full max-w-2xl mx-auto pt-8">
+    <div className="w-full max-w-2xl mx-auto pt-8 bg-white dark:bg-black dark:text-white min-h-screen transition-colors duration-300">
       <Stories />
       {posts.length > 0 ? (
         posts.map((post) => (

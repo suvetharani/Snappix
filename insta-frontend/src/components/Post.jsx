@@ -380,7 +380,7 @@ export default function Post({
   }
 
   return (
-    <div className="bg-white border rounded-md shadow mb-6 w-full max-w-md mx-auto relative">
+    <div className="bg-white dark:bg-black dark:border-gray-800 dark:text-white border rounded-md shadow mb-6 w-full max-w-md mx-auto relative">
       {/* Post Header */}
       <div className="flex justify-between items-center px-4 py-2">
         <div className="flex items-center">
@@ -395,15 +395,14 @@ export default function Post({
         </div>
         <button
           onClick={() => setMenuOpen(!menuOpen)}
-          className="text-2xl hover:bg-gray-100 p-1 rounded-full"
+          className="text-2xl hover:bg-gray-100 dark:hover:bg-gray-800 p-1 rounded-full"
         >
           <FiMoreHorizontal />
         </button>
         {menuOpen && (
-          <div className="absolute top-12 right-4 bg-white border rounded shadow z-50 w-48">
-
+          <div className="absolute top-12 right-4 bg-white dark:bg-neutral-900 border dark:border-gray-800 rounded shadow z-50 w-48">
             <button
-              className="block w-full text-left px-4 py-2 text-red-500 hover:bg-gray-100"
+              className="block w-full text-left px-4 py-2 text-red-500 hover:bg-gray-100 dark:hover:bg-gray-800"
               onClick={() => setMenuOpen(false)}
             >
               Cancel
@@ -466,9 +465,9 @@ export default function Post({
             {loadingSaved ? (
               <span className="w-5 h-5 inline-block animate-spin">⏳</span>
             ) : saved ? (
-              <FaBookmark className="w-5 h-5 text-gray-600 cursor-pointer" />
+              <FaBookmark className="w-5 h-5 cursor-pointer text-gray-600 dark:text-white" />
             ) : (
-              <FaRegBookmark className="w-5 h-5 text-gray-700 cursor-pointer" />
+              <FaRegBookmark className="w-5 h-5 cursor-pointer text-gray-700 dark:text-white" />
             )}
           </button>
       </div>
@@ -485,7 +484,7 @@ export default function Post({
 
         {/* Dropdown showing usernames */}
         {showPostLikers && postLikers.length > 0 && (
-          <div className="absolute bg-white border shadow-md rounded-md text-sm w-64 max-h-60 overflow-y-auto p-3 z-50">
+          <div className="absolute bg-white dark:bg-neutral-900 border dark:border-gray-800 shadow-md rounded-md text-sm w-64 max-h-60 overflow-y-auto p-3 z-50">
             <p className="font-semibold mb-2">Liked by:</p>
             {postLikers.map((user, i) => (
               <Link
@@ -509,7 +508,7 @@ export default function Post({
       {/* Post Caption */}
       <div className="px-4 pb-2">
         <p className="font-semibold">
-          {username} <span className="font-normal text-gray-800">{caption}</span>
+          {username} <span className="font-normal text-gray-800 dark:text-white">{caption}</span>
         </p>
       </div>
 
@@ -517,7 +516,7 @@ export default function Post({
       {showComments && (
         <div
           ref={commentBoxRef}
-          className="absolute top-12 right-2 z-40 bg-white border rounded-md shadow-lg w-80 max-h-96 flex flex-col"
+          className="absolute top-12 right-2 z-40 bg-white dark:bg-neutral-900 border dark:border-gray-800 rounded-md shadow-lg w-80 max-h-96 flex flex-col"
         >
           <h4 className="font-semibold px-4 pt-4">Comments</h4>
 
@@ -709,23 +708,22 @@ export default function Post({
 
       {/* Profile Page Style Modal */}
       {showProfileModal && profileModalPost && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowProfileModal(false)}>
-          <div className="bg-white rounded shadow-md flex flex-row w-auto max-w-4xl relative overflow-hidden" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50" onClick={() => setShowProfileModal(false)}>
+          <div className="bg-white dark:bg-black dark:text-white rounded shadow-md flex flex-row w-auto max-w-4xl relative overflow-hidden" onClick={(e) => e.stopPropagation()}>
             {/* Close Button */}
-            <button className="absolute top-2 right-12 z-50 text-white text-3xl" onClick={() => setShowProfileModal(false)}>&times;</button>
             {/* Three Dots Dropdown Button */}
             <div className="absolute top-2 right-2 z-50">
               <button className="text-2xl text-gray-500 hover:text-black" onClick={() => setShowDropdown((prev) => !prev)} title="Options">
                 <FaEllipsisV />
               </button>
               {showDropdown && (
-                <div className="absolute right-0 mt-2 w-32 bg-white border rounded shadow-lg z-50">
+                <div className="absolute right-0 mt-2 w-32 bg-white dark:bg-neutral-900 border dark:border-gray-800 rounded shadow-lg z-50">
                   {profileModalPost.username === currentUser && (
-                    <button onClick={() => { setShowDeleteConfirm(true); setShowDropdown(false); }} className="w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600">
+                    <button onClick={() => { setShowDeleteConfirm(true); setShowDropdown(false); }} className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 text-red-600">
                       Delete
                     </button>
                   )}
-                  <button onClick={() => setShowProfileModal(false)} className="w-full text-left px-4 py-2 hover:bg-gray-100">
+                  <button onClick={() => setShowProfileModal(false)} className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800">
                     Cancel
                   </button>
                 </div>
@@ -835,18 +833,43 @@ export default function Post({
                     {isSavedModal ? <FaBookmark /> : <FaRegBookmark />}
                   </button>
                 </div>
-                <div className="flex items-center border-t pt-1 relative mt-2">
-                  <button onClick={() => setShowEmojiPicker(p => !p)} className="text-2xl mr-2">😊</button>
-                  {showEmojiPicker && <div className="absolute bottom-12 left-0 z-50"><Picker data={data} onEmojiSelect={(e) => setModalReplyInput(prev => prev + e.native)} /></div>}
-                  <input ref={commentInputRef} type="text" value={modalReplyInput} onChange={(e) => setModalReplyInput(e.target.value)} placeholder={modalReplyTo ? `Replying...` : "Add a comment..."} className="flex-1 border rounded px-2 py-1" />
-                  <button onClick={handleModalPostComment} disabled={!modalReplyInput.trim()} className={`ml-2 px-3 py-1 rounded text-white ${!modalReplyInput.trim() ? "bg-gray-400" : "bg-blue-500"}`}>Post</button>
+                <div className="flex items-center border-t pt-1 relative dark:border-gray-800 bg-white dark:bg-black">
+                  <button
+                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                    className="text-2xl mr-2"
+                    title="Emoji"
+                  >
+                    😊
+                  </button>
+                  {showEmojiPicker && (
+                    <div className="absolute bottom-12 left-0 z-50">
+                      <Picker data={data} onEmojiSelect={(emoji) =>
+                        setCommentInput(prev => prev + emoji.native)
+                      } />
+                    </div>
+                  )}
+                  <input
+                    ref={commentInputRef}
+                    type="text"
+                    value={modalReplyInput}
+                    onChange={(e) => setModalReplyInput(e.target.value)}
+                    placeholder={modalReplyTo ? `Replying...` : "Add a comment..."}
+                    className="flex-1 border rounded px-2 py-1 bg-white dark:bg-neutral-900 dark:text-white border-gray-300 dark:border-gray-700"
+                  />
+                  <button
+                    onClick={handleModalPostComment}
+                    disabled={modalReplyInput.trim() === ""}
+                    className={`ml-2 px-3 py-1 rounded text-white ${modalReplyInput.trim() === "" ? "bg-gray-400 cursor-not-allowed" : "bg-blue-500 dark:bg-blue-600"}`}
+                  >
+                    Post
+                  </button>
                 </div>
               </div>
             </div>
           </div>
           {showDeleteConfirm && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={(e) => e.stopPropagation()}>
-              <div className="bg-white rounded p-6 w-80 text-center">
+            <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50" onClick={(e) => e.stopPropagation()}>
+              <div className="bg-white dark:bg-neutral-900 dark:text-white rounded p-6 w-80 text-center">
                 <h3 className="text-lg font-semibold mb-4">Delete Post</h3>
                 <p>Are you sure you want to delete this post?</p>
                 <div className="flex justify-end gap-4 mt-4">
@@ -861,7 +884,7 @@ export default function Post({
 
       {/* Video Modal (9:16) */}
       {showVideoModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
           <div className="relative flex flex-col items-center">
             <span
               className="absolute top-2 right-2 text-3xl text-white cursor-pointer z-50"

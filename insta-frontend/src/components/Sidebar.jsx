@@ -11,7 +11,7 @@ import {
   FiMessageCircle,
   FiBell,
   FiUser,
-  FiMoreHorizontal,
+  FiMenu,
   FiSettings,
   FiClock,
   FiBookmark,
@@ -20,7 +20,6 @@ import {
   FiLogOut,
   FiEdit3,
   FiAlertCircle,
-  FiMenu,
   FiX,
 } from "react-icons/fi";
 import ReportModal from "./ReportModal";
@@ -33,7 +32,12 @@ export default function Sidebar({ isOpen, setIsOpen }) {
   const [showCreate, setShowCreate] = useState(false);
   const [showMore, setShowMore] = useState(false);
   const [showAppearance, setShowAppearance] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => {
+    // Check localStorage for persisted theme
+    const stored = localStorage.getItem('darkMode');
+    return stored === 'true';
+  });
+  const [showAppearanceDropdown, setShowAppearanceDropdown] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [isReportOpen, setIsReportOpen] = useState(false);
@@ -49,6 +53,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
   const [selectedFile, setSelectedFile] = useState(null);
   const [caption, setCaption] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [currentUserProfile, setCurrentUserProfile] = useState(null);
 
   const { unreadUserCount } = useContext(UnreadContext);
 
@@ -73,6 +78,21 @@ export default function Sidebar({ isOpen, setIsOpen }) {
     return () => clearTimeout(debounceTimeout);
   }, [searchTerm]);
 
+  // Fetch current user's profilePic
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const username = localStorage.getItem("username");
+      if (!username) return;
+      try {
+        const res = await axios.get(`http://localhost:5000/api/profile/${username}`);
+        setCurrentUserProfile(res.data);
+      } catch (err) {
+        setCurrentUserProfile(null);
+      }
+    };
+    fetchProfile();
+  }, []);
+
 
  const clearAll = () => {
   setRecents([]);
@@ -87,9 +107,26 @@ const removeRecent = (username) => {
 
 
   const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-    document.documentElement.classList.toggle("dark", !darkMode);
+    setDarkMode((prev) => {
+      const next = !prev;
+      if (next) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      localStorage.setItem('darkMode', next);
+      return next;
+    });
   };
+
+  // On mount, apply dark mode if needed
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [darkMode]);
 
   const handleLogout = () => {
     alert("Logged out!");
@@ -100,14 +137,14 @@ const removeRecent = (username) => {
     <>
       {!isOpen && (
         <button
-          className="fixed top-4 left-4 z-50 bg-white rounded p-2 shadow"
+          className="fixed top-4 left-4 z-50 bg-white dark:bg-black dark:text-white rounded p-2 shadow border dark:border-gray-800"
           onClick={() => setIsOpen(true)}
         >
           <FiMenu className="text-2xl" />
         </button>
       )}
       <aside
-        className={`flex flex-col justify-between h-screen ${showSearch ? 'w-20' : 'w-64'} fixed left-0 top-0 z-50 p-4 border-r bg-white transition-all duration-300
+        className={`flex flex-col justify-between h-screen ${showSearch ? 'w-20' : 'w-64'} fixed left-0 top-0 z-50 p-4 border-r bg-white dark:bg-black dark:border-gray-800 dark:text-white transition-all duration-300
           ${isOpen ? "translate-x-0" : "-translate-x-full"}`}
         style={{ pointerEvents: "auto" }}
       >
@@ -137,7 +174,7 @@ const removeRecent = (username) => {
 
             <Link
               to="/"
-              className="flex items-center gap-2 hover:bg-gray-100 px-2 py-2 rounded w-full"
+              className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 px-2 py-2 rounded w-full"
             >
               <FiHome /> {isOpen && !showSearch && "Home"}
             </Link>
@@ -148,28 +185,28 @@ const removeRecent = (username) => {
                 setShowMore(false);
                 setShowCreate(false);
               }}
-              className="flex items-center gap-2 hover:bg-gray-100 text-left px-2 py-2 rounded w-full"
+              className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 text-left px-2 py-2 rounded w-full"
             >
               <FiSearch /> {isOpen && !showSearch && "Search"}
             </button>
 
             <Link
               to="/explore"
-              className="flex items-center gap-2 hover:bg-gray-100 px-2 py-2 rounded w-full"
+              className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 px-2 py-2 rounded w-full"
             >
               <FiCompass /> {isOpen && !showSearch && "Explore"}
             </Link>
 
             <Link
               to="/reels"
-              className="flex items-center gap-2 hover:bg-gray-100 px-2 py-2 rounded w-full"
+              className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 px-2 py-2 rounded w-full"
             >
               <FiFilm /> {isOpen && !showSearch && "Reels"}
             </Link>
 
             <Link
               to="/messages"
-              className="flex items-center gap-2 hover:bg-gray-100 px-2 py-2 rounded w-full relative"
+              className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 px-2 py-2 rounded w-full relative"
             >
               <FiMessageCircle /> {isOpen && !showSearch && "Messages"}
               {unreadUserCount > 0 && (
@@ -181,7 +218,7 @@ const removeRecent = (username) => {
 
             <Link
               to="/notifications"
-              className="flex items-center gap-2 hover:bg-gray-100 px-2 py-2 rounded w-full"
+              className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 px-2 py-2 rounded w-full"
             >
               <FiBell /> {isOpen && !showSearch && "Notifications"}
             </Link>
@@ -192,16 +229,29 @@ const removeRecent = (username) => {
                 setShowMore(false);
                 setShowSearch(false);
               }}
-              className="flex items-center gap-2 hover:bg-gray-100 text-left px-2 py-2 rounded w-full"
+              className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 text-left px-2 py-2 rounded w-full"
             >
               <FiEdit3 /> {isOpen && !showSearch && "Create"}
             </button>
 
             <Link
               to={`/profile/${localStorage.getItem("username")}`}
-              className="flex items-center gap-2 hover:bg-gray-100 px-2 py-2 rounded w-full"
+              className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 px-2 py-2 rounded w-full"
             >
-              <FiUser /> {isOpen && !showSearch && "Profile"}
+              {currentUserProfile && currentUserProfile.profilePic ? (
+                <img
+                  src={`http://localhost:5000${currentUserProfile.profilePic}`}
+                  alt={currentUserProfile.username}
+                  className="w-7 h-7 rounded-full object-cover border"
+                />
+              ) : (
+                <img
+                  src={`https://ui-avatars.com/api/?name=${localStorage.getItem("username") || "U"}&background=random`}
+                  alt="profile"
+                  className="w-7 h-7 rounded-full object-cover border"
+                />
+              )}
+              {isOpen && !showSearch && "Profile"}
             </Link>
 
 
@@ -210,17 +260,18 @@ const removeRecent = (username) => {
                 setShowMore(!showMore);
                 setShowCreate(false);
                 setShowSearch(false);
+                setShowAppearanceDropdown(false);
               }}
-              className="flex items-center gap-2 hover:bg-gray-100 text-left px-2 py-2 rounded w-full"
+              className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 text-left px-2 py-2 rounded w-full"
             >
-              <FiMoreHorizontal /> {isOpen && !showSearch && "More"}
+              <FiMenu /> {isOpen && !showSearch && "More"}
             </button>
           </nav>
 
           {showCreate && isOpen && (
-            <div className="absolute top-40 left-4 w-40 bg-white border shadow-lg rounded p-2 z-50">
+            <div className="absolute top-40 left-4 w-40 bg-white dark:bg-neutral-900 border dark:border-gray-800 shadow-lg rounded p-2 z-50">
               <button
-                className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                className="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800"
                 onClick={() => {
                   document.getElementById("sidebarFileInput").click();
                   setShowCreate(false);
@@ -295,51 +346,42 @@ const removeRecent = (username) => {
   )}
 
 
-          {showMore && isOpen && (
-            <div className="absolute top-40 left-4 w-56 bg-white border shadow-lg rounded p-2 z-50">
+          {showMore && isOpen && !showAppearanceDropdown && (
+            <div className="absolute top-40 left-4 w-56 bg-white dark:bg-neutral-900 border dark:border-gray-800 shadow-lg rounded p-2 z-50">
               <Link
                 to="/settings"
-                className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100"
+                className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 <FiSettings /> Settings
               </Link>
               <Link
                 to="/activity"
-                className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100"
+                className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 <FiClock /> Your Activity
               </Link>
               <Link
                 to="/saved"
-                className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100"
+                className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 <FiBookmark /> Saved
               </Link>
               <button
-                onClick={() => setShowAppearance(!showAppearance)}
-                className="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-gray-100"
+                onClick={() => {
+                  setShowMore(false);
+                  setShowAppearanceDropdown(true);
+                }}
+                className="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800"
               >
-                {darkMode ? <FiSun /> : <FiMoon />} Switch Appearance
+                {darkMode ? <FiMoon /> : <FiSun />} Switch Appearance
               </button>
-              {showAppearance && (
-                <div className="pl-8 py-2">
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={darkMode}
-                      onChange={toggleDarkMode}
-                    />
-                    Dark Mode
-                  </label>
-                </div>
-              )}
               <Link
                 onClick={(e) => {
                   e.preventDefault();
                   setIsReportOpen(true);
                 }}
                 to="#"
-                className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100"
+                className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 <FiAlertCircle /> Report a Problem
               </Link>
@@ -351,16 +393,46 @@ const removeRecent = (username) => {
 
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-2 w-full text-left px-4 py-2 text-red-500 hover:bg-gray-100"
+                className="flex items-center gap-2 w-full text-left px-4 py-2 text-red-500 hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 <FiLogOut /> Log Out
+              </button>
+            </div>
+          )}
+
+          {/* Appearance Dropdown */}
+          {showAppearanceDropdown && isOpen && (
+            <div className="absolute top-40 left-4 w-56 bg-white dark:bg-neutral-900 border dark:border-gray-800 shadow-lg rounded p-2 z-50">
+              <div className="px-4 py-2 font-semibold text-left flex items-center gap-2">
+                Switch Appearance
+                {darkMode ? <FiMoon /> : <FiSun />}
+              </div>
+              <div className="flex items-center justify-between px-4 py-2">
+                <span className="text-sm">Dark Mode</span>
+                <button
+                  onClick={toggleDarkMode}
+                  aria-label="Toggle dark mode"
+                  className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors duration-200 focus:outline-none mx-2 ${darkMode ? 'bg-blue-600' : 'bg-gray-300'}`}
+                >
+                  <span
+                    className={`inline-block w-5 h-5 transform bg-white rounded-full shadow transition-transform duration-200 ${darkMode ? 'translate-x-5' : 'translate-x-1'}`}
+                  />
+                </button>
+              </div>
+              <button
+                onClick={() => {
+                  setShowAppearanceDropdown(false);
+                }}
+                className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 text-blue-500"
+              >
+                Close
               </button>
             </div>
           )}
         </div>
       </aside>
       {showSearch && isOpen && (
-        <div className="fixed top-0 left-20 h-screen w-[397px] bg-white border-x rounded-r-2xl shadow-lg z-40 p-4 flex flex-col transition-all duration-300">
+        <div className="fixed top-0 left-20 h-screen w-[397px] bg-white dark:bg-neutral-900 dark:text-white border-x dark:border-gray-800 rounded-r-2xl shadow-lg z-40 p-4 flex flex-col transition-all duration-300">
           <h2 className="text-2xl font-bold mt-4 mb-6 px-2">Search</h2>
           <div className="relative mb-6 px-2">
             <input
@@ -368,7 +440,7 @@ const removeRecent = (username) => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search"
-              className="w-full bg-gray-100 p-2 pr-8 rounded-lg"
+              className="w-full bg-gray-100 dark:bg-neutral-800 dark:text-white p-2 pr-8 rounded-lg"
             />
             <span
               className="absolute right-4 top-2.5 text-gray-500"
@@ -376,7 +448,7 @@ const removeRecent = (username) => {
               <FiSearch />
             </span>
           </div>
-          <div className="flex-grow overflow-y-auto border-t">
+          <div className="flex-grow overflow-y-auto border-t dark:border-gray-800">
             {/* Live Search Results */}
             {searchTerm.trim() && searchResults.length > 0 && (
               <>
@@ -397,7 +469,7 @@ const removeRecent = (username) => {
                           setSearchTerm("");
                           setShowSearch(false);
                         }}
-                        className="block py-2 px-2 rounded-lg hover:bg-gray-50"
+                        className="block py-2 px-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
                       >
                         <div className="flex items-center gap-3">
                           <img
@@ -426,7 +498,7 @@ const removeRecent = (username) => {
                   {recents.length > 0 && (
                     <button
                       onClick={clearAll}
-                      className="text-sm text-blue-500 font-semibold hover:text-gray-900"
+                      className="text-sm text-blue-500 font-semibold hover:text-gray-900 dark:hover:text-white"
                     >
                       Clear all
                     </button>
@@ -436,7 +508,7 @@ const removeRecent = (username) => {
                   {recents.map((item, index) => (
                     <li
                       key={index}
-                      className="py-2 px-2 flex justify-between items-center rounded-lg hover:bg-gray-50"
+                      className="py-2 px-2 flex justify-between items-center rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
                     >
                       <Link
                         to={`/profile/${item.username}`}
@@ -456,7 +528,7 @@ const removeRecent = (username) => {
                       </Link>
                       <button
                         onClick={() => removeRecent(item.username)}
-                        className="text-gray-400 hover:text-gray-900"
+                        className="text-gray-400 hover:text-gray-900 dark:hover:text-white"
                       >
                         <FiX />
                       </button>

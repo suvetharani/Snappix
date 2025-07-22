@@ -178,14 +178,14 @@ export default function Messages() {
   };
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen bg-white dark:bg-black dark:text-white transition-colors duration-300 w-full min-w-0">
       {/* Left Sidebar */}
-      <aside className="w-1/3 border-r flex flex-col">
+      <aside className="w-1/3 border-r flex flex-col bg-white dark:bg-neutral-900 dark:border-gray-800 dark:text-white">
         <div className="p-4 font-bold text-xl">{myUsername || "your_id"}</div>
 
         {/* Better Search */}
         <div className="px-4 mb-6">
-          <div className="flex items-center bg-gray-100 border rounded-full px-4 py-2 shadow-sm">
+          <div className="flex items-center bg-gray-100 dark:bg-neutral-800 border dark:border-gray-700 rounded-full px-4 py-2 shadow-sm">
             <FiSearch className="mr-2 text-gray-500" />
             <input
               type="text"
@@ -201,7 +201,7 @@ export default function Messages() {
           {following.map((user, idx) => (
             <div
               key={idx}
-              className="flex items-center gap-2 py-2 cursor-pointer hover:bg-gray-100 rounded px-2"
+              className="flex items-center gap-2 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-neutral-800 rounded px-2"
               onClick={() => selectChat(user)}
             >
               <img
@@ -222,11 +222,11 @@ export default function Messages() {
       </aside>
 
       {/* Right Chat Section */}
-      <div className="flex-1 flex flex-col relative">
+      <div className="flex-1 flex flex-col relative bg-white dark:bg-black dark:text-white">
         {selectedChat ? (
           <>
             {/* Top bar */}
-            <div className="flex justify-between items-center p-4 border-b">
+            <div className="flex justify-between items-center p-4 border-b dark:border-gray-800">
               <div className="flex items-center gap-2">
                 <img
                   src={selectedChat.dp}
@@ -263,7 +263,7 @@ export default function Messages() {
                     className={`inline-block px-4 py-2 rounded-lg ${
                       msg.sender === myUsername
                         ? "bg-blue-500 text-white"
-                        : "bg-gray-200 text-black"
+                        : "bg-gray-200 dark:bg-neutral-800 dark:text-white text-black"
                     }`}
                   >
                     {msg.text}
@@ -273,7 +273,7 @@ export default function Messages() {
             </div>
 
             {/* Input */}
-            <div className="flex items-center border-t p-4 relative">
+            <div className="flex items-center border-t p-4 relative dark:border-gray-800 bg-white dark:bg-black">
               <button
                 className="text-2xl mr-2"
                 onClick={() => setShowEmoji(!showEmoji)}
@@ -294,7 +294,7 @@ export default function Messages() {
               <textarea
                 rows={1}
                 placeholder="Type a message..."
-                className="flex-1 border rounded px-2 py-1 mr-2"
+                className="flex-1 border rounded px-2 py-1 mr-2 bg-white dark:bg-neutral-900 dark:text-white border-gray-300 dark:border-gray-700"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
               />
@@ -311,7 +311,7 @@ export default function Messages() {
 
             {/* Details Panel */}
             {showDetails && (
-              <div className="absolute right-0 top-0 w-64 h-full bg-white border-l shadow p-4 z-50">
+              <div className="absolute right-0 top-0 w-64 h-full bg-white dark:bg-neutral-900 dark:text-white border-l dark:border-gray-800 shadow p-4 z-50">
                 <div className="flex justify-between items-center mb-4">
                   <h4 className="font-semibold">Details</h4>
                   <FiX

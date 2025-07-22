@@ -177,7 +177,7 @@ export default function Reels() {
   }
 
   return (
-    <div className="flex justify-center items-center bg-gray-100 h-screen w-screen overflow-hidden">
+    <div className="flex justify-center items-center bg-gray-100 dark:bg-black dark:text-white h-screen w-screen overflow-hidden transition-colors duration-300">
       <div
         className="relative bg-black rounded-xl overflow-hidden flex items-center justify-center"
         style={{
@@ -318,7 +318,7 @@ export default function Reels() {
 
         {/* Comments panel */}
         {showComments && (
-          <div className="fixed right-4 top-20 w-80 bg-white rounded-lg shadow-xl z-50 p-4">
+          <div className="fixed right-4 top-20 w-80 bg-white dark:bg-neutral-900 dark:text-white rounded-lg shadow-xl z-50 p-4">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-semibold">Comments</h2>
               <button onClick={() => setShowComments(false)}>
@@ -511,8 +511,8 @@ export default function Reels() {
 
         {/* Share popup */}
         {showShare && (
-          <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50">
-            <div className="bg-white w-full max-w-sm rounded-lg p-4 relative">
+          <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-80 z-50">
+            <div className="bg-white dark:bg-neutral-900 dark:text-white w-full max-w-sm rounded-lg p-4 relative">
               <button
                 onClick={() => setShowShare(false)}
                 className="absolute top-4 right-4"
@@ -554,33 +554,33 @@ export default function Reels() {
 
         {/* Three dots menu */}
         {showMenu && (
-          <div className="absolute right-4 bottom-4 bg-white text-black rounded shadow-lg z-50 w-48 p-2">
+          <div className="absolute right-4 bottom-4 bg-white dark:bg-neutral-900 dark:text-white rounded shadow-lg z-50 w-48 p-2">
             <button
-              className="w-full text-left py-2 hover:bg-gray-100"
+              className="w-full text-left py-2 hover:bg-gray-100 dark:hover:bg-gray-800"
               onClick={() => alert("Reported")}
             >
               Report
             </button>
-            <button className="w-full text-left py-2 hover:bg-gray-100">
+            <button className="w-full text-left py-2 hover:bg-gray-100 dark:hover:bg-gray-800">
               Follow
             </button>
-            <button className="w-full text-left py-2 hover:bg-gray-100">
+            <button className="w-full text-left py-2 hover:bg-gray-100 dark:hover:bg-gray-800">
               Go to Post
             </button>
-            <button className="w-full text-left py-2 hover:bg-gray-100">
+            <button className="w-full text-left py-2 hover:bg-gray-100 dark:hover:bg-gray-800">
               Share to...
             </button>
-            <button className="w-full text-left py-2 hover:bg-gray-100">
+            <button className="w-full text-left py-2 hover:bg-gray-100 dark:hover:bg-gray-800">
               Copy Link
             </button>
-            <button className="w-full text-left py-2 hover:bg-gray-100">
+            <button className="w-full text-left py-2 hover:bg-gray-100 dark:hover:bg-gray-800">
               Embed
             </button>
-            <button className="w-full text-left py-2 hover:bg-gray-100">
+            <button className="w-full text-left py-2 hover:bg-gray-100 dark:hover:bg-gray-800">
               About this Account
             </button>
             <button
-              className="w-full text-left py-2 text-red-500 hover:bg-gray-100"
+              className="w-full text-left py-2 text-red-500 hover:bg-gray-100 dark:hover:bg-gray-800"
               onClick={() => setShowMenu(false)}
             >
               Cancel

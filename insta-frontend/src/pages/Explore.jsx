@@ -211,7 +211,7 @@ export default function Explore() {
   if (loading) return <div className="text-center p-10">Loading...</div>;
 
   return (
-    <div className="max-w-6xl mx-auto p-4">
+    <div className="max-w-6xl mx-auto p-4 bg-white dark:bg-black dark:text-white min-h-screen transition-colors duration-300 w-full min-w-0">
       <h1 className="text-2xl font-bold mb-6">Explore</h1>
       <div className="grid grid-cols-3 gap-1 md:gap-2 lg:gap-4">
         {posts.map((post, index) => (
@@ -255,7 +255,7 @@ export default function Explore() {
       </div>
       {/* Modal (copied/adapted from Profile.jsx) */}
       {selectedPost && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
           {/* Previous Button */}
           {currentIndex > 0 && (
             <button
@@ -266,7 +266,7 @@ export default function Explore() {
             </button>
           )}
 
-          <div className="bg-white rounded shadow-md flex flex-row w-auto max-w-4xl relative overflow-hidden">
+          <div className="bg-white dark:bg-black dark:text-white rounded shadow-md flex flex-row w-auto max-w-4xl relative overflow-hidden">
             {/* X Close Button */}
             <button
               className="absolute top-2 right-2 text-2xl text-gray-500 hover:text-black z-50 bg-white rounded-full p-1"
@@ -319,7 +319,7 @@ export default function Explore() {
               style={{ height: isVideoFile(selectedPost.fileUrl) ? '640px' : '400px' }}
             >
               <h2 className="font-semibold mb-1">{selectedPost.username}</h2>
-              <p className="mb-2">{selectedPost.caption}</p>
+              <p className="mb-2 text-black dark:text-white">{selectedPost.caption}</p>
               {/* Scrollable comments section */}
               <div className="flex-1 overflow-y-auto border-b pr-1 pb-24"> {/* pb-24 ensures comments are not hidden behind controls */}
                 {modalComments.length ? (
@@ -484,7 +484,7 @@ export default function Explore() {
                 )}
               </div>
               {/* Like, Save, and Like Count + Comment input absolutely fixed at bottom */}
-              <div className="absolute left-0 right-0 bottom-0 border-t bg-white">
+              <div className="absolute left-0 right-0 bottom-0 border-t bg-white dark:bg-black">
                 <div className="flex items-center px-1 py-1 relative">
                   <button
                     className={`text-2xl transition-colors duration-200 ${isLiked ? "text-red-500" : "text-gray-600"}`}
