@@ -21,6 +21,7 @@ const handleLogin = async (e) => {
     try {
       const res = await axios.post("http://localhost:5000/api/auth/login", loginData);
       localStorage.setItem("username", loginData.username);
+      localStorage.setItem("loginTime", Date.now());
       setIsLoggedIn(true);  // this will switch routes
     } catch (err) {
       alert(err.response.data.message || "Login failed");
@@ -41,6 +42,7 @@ const handleSignup = async (e) => {
     try {
       const res = await axios.post("http://localhost:5000/api/auth/signup", signupData);
       localStorage.setItem("username", signupData.username);
+      localStorage.setItem("loginTime", Date.now());
       setIsLoggedIn(true);
       window.location.href = "/profile"; // ✅ Redirect after signup
     } catch (err) {

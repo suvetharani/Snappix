@@ -26,7 +26,7 @@ import ReportModal from "./ReportModal";
 import { FaInstagram, FaPlus } from "react-icons/fa";
 import { UnreadContext } from "../context/UnreadContext";
 
-export default function Sidebar({ isOpen, setIsOpen }) {
+export default function Sidebar({ isOpen, setIsOpen, onReportOpen }) {
   const [foundUser, setFoundUser] = useState(null);
   const [showSearch, setShowSearch] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
@@ -378,18 +378,14 @@ const removeRecent = (username) => {
               <Link
                 onClick={(e) => {
                   e.preventDefault();
-                  setIsReportOpen(true);
+                  setShowMore(false);
+                  if (typeof onReportOpen === 'function') onReportOpen();
                 }}
                 to="#"
                 className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 <FiAlertCircle /> Report a Problem
               </Link>
-
-              <ReportModal
-                isOpen={isReportOpen}
-                onClose={() => setIsReportOpen(false)}
-              />
 
               <button
                 onClick={handleLogout}
