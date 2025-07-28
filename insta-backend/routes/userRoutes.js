@@ -17,4 +17,16 @@ router.get("/", async (req, res) => {
   }
 });
 
+// Get all users except the current user
+router.get("/all", async (req, res) => {
+  const exclude = req.query.exclude;
+  try {
+    const query = exclude ? { username: { $ne: exclude } } : {};
+    const users = await User.find(query).select("username profilePic fullname");
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 module.exports = router;
