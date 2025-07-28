@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Feed from "./pages/Feed";
 import Profile from "./pages/Profile";
@@ -20,6 +20,21 @@ export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
     return !!localStorage.getItem("username");
   });
+
+  useEffect(() => {
+    const username = localStorage.getItem("username");
+    const loginTime = localStorage.getItem("loginTime");
+    if (username && loginTime) {
+      const now = Date.now();
+      const oneWeek = 7 * 24 * 60 * 60 * 1000;
+      if (now - Number(loginTime) > oneWeek) {
+        localStorage.removeItem("username");
+        localStorage.removeItem("loginTime");
+        setIsLoggedIn(false);
+        window.location.href = "/login";
+      }
+    }
+  }, []);
 
   return (
     <Routes>
