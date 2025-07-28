@@ -11,6 +11,8 @@ import { FaEllipsisV } from "react-icons/fa";
 import { createPortal } from "react-dom";
 import { FaPlay } from "react-icons/fa";
 import { FaVolumeMute, FaVolumeUp } from "react-icons/fa";
+import { useCallback } from "react";
+import Post from "../components/Post";
 
 
 export default function Profile() {
@@ -64,6 +66,46 @@ export default function Profile() {
   const postLikeCountRef = useRef(null);
   const [postDropdownPos, setPostDropdownPos] = useState(null);
 
+  // Collaborator logic for post modal
+  const [collaboratorInput, setCollaboratorInput] = useState("");
+  const [collaborators, setCollaborators] = useState([]); // array of usernames
+  const [collabResults, setCollabResults] = useState([]); // array of user objects
+  const [collabLoading, setCollabLoading] = useState(false);
+  const [collabDropdown, setCollabDropdown] = useState(false);
+
+  // Debounced search for collaborators
+  useEffect(() => {
+    if (!collaboratorInput.trim()) {
+      setCollabResults([]);
+      setCollabDropdown(false);
+      return;
+    }
+    setCollabLoading(true);
+    const timeout = setTimeout(async () => {
+      try {
+        const res = await axios.get(`http://localhost:5000/api/users?username=${collaboratorInput}`);
+        setCollabResults(res.data.filter(u => !collaborators.includes(u.username)));
+        setCollabDropdown(true);
+      } catch {
+        setCollabResults([]);
+      } finally {
+        setCollabLoading(false);
+      }
+    }, 300);
+    return () => clearTimeout(timeout);
+  }, [collaboratorInput, collaborators]);
+
+  const addCollaborator = (username) => {
+    if (!collaborators.includes(username)) {
+      setCollaborators([...collaborators, username]);
+    }
+    setCollaboratorInput("");
+    setCollabDropdown(false);
+  };
+  const removeCollaborator = (username) => {
+    setCollaborators(collaborators.filter(u => u !== username));
+  };
+
   const handleUploadPost = async () => {
     if (!selectedFile) return;
 
@@ -73,9 +115,25 @@ export default function Profile() {
     formData.append("caption", caption);
 
     try {
-      await axios.post("http://localhost:5000/api/posts/create", formData, {
+      const postRes = await axios.post("http://localhost:5000/api/posts/create", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+
+      // Send collab invite message to each collaborator
+      for (const collaborator of collaborators) {
+        try {
+          await axios.post('http://localhost:5000/api/messages/send', {
+            sender: user.username,
+            receiver: collaborator,
+            type: "collab_invite",
+            postId: postRes.data._id,
+            fileUrl: postRes.data.fileUrl,
+            caption: caption
+          });
+        } catch (err) {
+          // Optionally handle error for each collaborator
+        }
+      }
 
       setSelectedFile(null);
       setCaption("");
@@ -458,27 +516,17 @@ function handleTouchEnd() {
                   setSelectedPost(res.data);
                 }}
               >
-                {isVideoFile(post.fileUrl) && (
-                  <span className="absolute top-2 right-2 text-white bg-black bg-opacity-60 rounded-full p-1 z-10">
-                    <FaPlay className="w-4 h-4" />
-                  </span>
-                )}
-                {isVideoFile(post.fileUrl) ? (
-                  <video
-                    src={`http://localhost:5000${post.fileUrl}`}
-                    className="w-full h-full object-cover"
-                    style={{ aspectRatio: '1/1' }}
-                    muted
-                    playsInline
-                  />
-                ) : (
-                <img
-                  src={`http://localhost:5000${post.fileUrl}`}
-                  alt={`Post ${index + 1}`}
-                  className="w-full h-full object-cover"
-                  style={{ aspectRatio: '1/1' }}
+                <Post
+                  postId={post._id}
+                  username={post.username}
+                  collaborators={post.collaborators || []}
+                  profile={`http://localhost:5000${post.profilePic || ''}`}
+                  image={`http://localhost:5000${post.fileUrl}`}
+                  caption={post.caption}
+                  currentUser={username}
+                  initialLikes={post.likes || []}
+                  initialComments={post.comments || []}
                 />
-                )}
               </div>
             ))
           ) : (
@@ -1252,12 +1300,6 @@ function handleTouchEnd() {
               Post
             </button>
             <button
-              onClick={() => alert("Story feature not implemented yet!")}
-              className="px-4 py-2 bg-blue-500 text-white rounded"
-            >
-              Story
-            </button>
-            <button
               onClick={() => setShowNewModal(false)}
               className="px-4 py-2 border border-blue-500 text-blue-500 rounded"
             >
@@ -1291,6 +1333,51 @@ function handleTouchEnd() {
               onChange={(e) => setCaption(e.target.value)}
               className="border px-3 py-2 rounded"
             />
+            {/* Add Collaborator input */}
+            <div className="mb-2">
+              <div className="relative">
+                <input
+                  type="text"
+                  value={collaboratorInput}
+                  onChange={e => setCollaboratorInput(e.target.value)}
+                  onFocus={() => setCollabDropdown(!!collabResults.length)}
+                  placeholder="Add collaborator"
+                  className="border px-3 py-2 rounded w-full"
+                  disabled={collaborators.length >= 5}
+                />
+                {collabDropdown && collabResults.length > 0 && (
+                  <div className="absolute left-0 right-0 bg-white dark:bg-neutral-900 border dark:border-gray-700 rounded shadow z-50 mt-1 max-h-40 overflow-y-auto">
+                    {collabResults.map(user => (
+                      <div
+                        key={user._id}
+                        className="px-3 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+                        onClick={() => addCollaborator(user.username)}
+                      >
+                        <span className="font-semibold">{user.username}</span>
+                        {user.fullname && <span className="ml-2 text-gray-500">{user.fullname}</span>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {collabDropdown && !collabLoading && collabResults.length === 0 && (
+                  <div className="absolute left-0 right-0 bg-white dark:bg-neutral-900 border dark:border-gray-700 rounded shadow z-50 mt-1 px-3 py-2 text-gray-500">No users found</div>
+                )}
+                {collabLoading && (
+                  <div className="absolute left-0 right-0 bg-white dark:bg-neutral-900 border dark:border-gray-700 rounded shadow z-50 mt-1 px-3 py-2 text-gray-500">Searching...</div>
+                )}
+              </div>
+              {/* Show selected collaborators as tags */}
+              {collaborators.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {collaborators.map(username => (
+                    <span key={username} className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 px-2 py-1 rounded-full flex items-center text-xs">
+                      {username}
+                      <button onClick={() => removeCollaborator(username)} className="ml-1 text-xs text-red-500 hover:text-red-700">&times;</button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
             <button
               onClick={handleUploadPost}
               className="px-4 py-2 bg-blue-500 text-white rounded"

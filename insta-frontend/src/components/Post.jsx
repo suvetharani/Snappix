@@ -29,6 +29,7 @@ function isVideoFile(fileUrl) {
 export default function Post({
   postId,
   username,
+  collaborators = [],
   profile,
   image,
   caption,
@@ -389,9 +390,16 @@ export default function Post({
             alt={username}
             className="w-10 h-10 rounded-full mr-3 object-cover"
           />
-          <Link to={`/profile/${username}`} className="font-semibold hover:underline">
-            {username}
-          </Link>
+          <span>
+            {[username, ...collaborators].map((u, i, arr) => (
+              <span key={u}>
+                <Link to={`/profile/${u}`} className="font-semibold hover:underline">
+                  {u}
+                </Link>
+                {i < arr.length - 1 && ', '}
+              </span>
+            ))}
+          </span>
         </div>
         <button
           onClick={() => setMenuOpen(!menuOpen)}

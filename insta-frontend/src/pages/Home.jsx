@@ -36,7 +36,7 @@ export default function Home() {
     setRecents(updated);
     localStorage.setItem("recents", JSON.stringify(updated));
   };
-
+  
     const suggestions = [
     { id: 1, username: "user1", profile: Profile },
     { id: 2, username: "user2", profile: Profile },
@@ -117,6 +117,7 @@ profile: post.profilePic
             key={post._id}
             postId={post._id}
             username={post.username}
+            collaborators={post.collaborators || []}
             profile={`http://localhost:5000${post.profile}`}
             image={`http://localhost:5000${post.fileUrl}`}
             caption={post.caption}

@@ -57,16 +57,16 @@ export default function Stories() {
         style={{ ...hideScrollbar, scrollBehavior: 'smooth', minWidth: 0 }}
         onScroll={() => setScrollPos(containerRef.current.scrollLeft)}
       >
-        {stories.map((story, index) => (
+      {stories.map((story, index) => (
           <div key={index} className="flex flex-col items-center flex-shrink-0">
-            <img
-              src={story.profile}
-              alt={story.username}
-              className="w-16 h-16 rounded-full object-cover border-2 border-pink-500 mb-2"
-            />
-            <span className="text-xs">{story.username}</span>
-          </div>
-        ))}
+          <img
+            src={story.profile}
+            alt={story.username}
+            className="w-16 h-16 rounded-full object-cover border-2 border-pink-500 mb-2"
+          />
+          <span className="text-xs">{story.username}</span>
+        </div>
+      ))}
       </div>
       {/* Right Arrow */}
       <button
