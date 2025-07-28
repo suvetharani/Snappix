@@ -315,22 +315,22 @@ export default function Messages() {
                     )}
                   </div>
                 ) : (
-                  <div
-                    key={i}
-                    className={`mb-2 max-w-xs ${
-                      msg.sender === myUsername ? "ml-auto text-right" : ""
+                <div
+                  key={i}
+                  className={`mb-2 max-w-xs ${
+                    msg.sender === myUsername ? "ml-auto text-right" : ""
+                  }`}
+                >
+                  <p
+                    className={`inline-block px-4 py-2 rounded-lg ${
+                      msg.sender === myUsername
+                        ? "bg-blue-500 text-white"
+                        : "bg-gray-200 dark:bg-neutral-800 dark:text-white text-black"
                     }`}
                   >
-                    <p
-                      className={`inline-block px-4 py-2 rounded-lg ${
-                        msg.sender === myUsername
-                          ? "bg-blue-500 text-white"
-                          : "bg-gray-200 dark:bg-neutral-800 dark:text-white text-black"
-                      }`}
-                    >
-                      {msg.text}
-                    </p>
-                  </div>
+                    {msg.text}
+                  </p>
+                </div>
                 )
               ))}
             </div>

@@ -380,6 +380,38 @@ export default function Post({
     clearTimeout(touchTimeout.current);
   }
 
+  // Add share dropdown state and logic
+  const [showShareDropdown, setShowShareDropdown] = useState(false);
+  const [followings, setFollowings] = useState([]);
+  const [selectedShareUsers, setSelectedShareUsers] = useState([]);
+  const shareBtnRef = useRef(null);
+
+  useEffect(() => {
+    if (showShareDropdown) {
+      const fetchFollowings = async () => {
+        try {
+          const res = await axios.get(`http://localhost:5000/api/profile/${currentUser}`);
+          setFollowings(res.data.following || []);
+        } catch (err) {
+          setFollowings([]);
+        }
+      };
+      fetchFollowings();
+    }
+  }, [showShareDropdown, currentUser]);
+
+  useEffect(() => {
+    function handleClick(e) {
+      if (shareBtnRef.current && !shareBtnRef.current.contains(e.target)) {
+        setShowShareDropdown(false);
+      }
+    }
+    if (showShareDropdown) {
+      document.addEventListener('mousedown', handleClick);
+    }
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [showShareDropdown]);
+
   return (
     <div className="bg-white dark:bg-black dark:border-gray-800 dark:text-white border rounded-md shadow mb-6 w-full max-w-md min-w-[330px] mx-auto relative">
       {/* Post Header */}
@@ -395,7 +427,7 @@ export default function Post({
               <span key={u}>
                 <Link to={`/profile/${u}`} className="font-semibold hover:underline">
                   {u}
-                </Link>
+          </Link>
                 {i < arr.length - 1 && ', '}
               </span>
             ))}
@@ -452,7 +484,7 @@ export default function Post({
 
       {/* Post Actions */}
       <div className="flex justify-between items-center px-4 py-2">
-        <div className="flex gap-4 text-2xl">
+        <div className="flex gap-4 text-2xl items-center">
           <button onClick={handleLike} className="hover:scale-110">
             {liked ? <FaHeart className="text-red-500" /> : <FaRegHeart />}
           </button>
@@ -462,12 +494,62 @@ export default function Post({
           >
             <FaRegComment />
           </button>
-          <button
-            onClick={(handleSave)}
-            className="hover:scale-110 cursor-pointer"
-          >
-            <FaRegPaperPlane />
-          </button>
+          
+          <div className="relative" ref={shareBtnRef}>
+            <button
+              className="hover:scale-110 cursor-pointer"
+              title="Share"
+              onClick={() => setShowShareDropdown((v) => !v)}
+            >
+              <FaRegPaperPlane />
+            </button>
+            {showShareDropdown && (
+              <div className="absolute z-50 top-10 right-0 bg-white dark:bg-neutral-900 border dark:border-gray-800 rounded shadow w-64 max-h-80 overflow-y-auto p-2">
+                <div className="font-semibold mb-2">Share to...</div>
+                {followings.length === 0 ? (
+                  <div className="text-gray-500 text-sm">You are not following anyone.</div>
+                ) : (
+                  <div>
+                    {followings.map(f => {
+                      const selected = selectedShareUsers.includes(f.username);
+                      return (
+                        <button
+                          key={f.username}
+                          className={`flex items-center w-full gap-3 p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 text-left relative ${selected ? 'bg-blue-50 dark:bg-blue-900' : ''}`}
+                          onClick={e => {
+                            e.preventDefault();
+                            setSelectedShareUsers(prev => prev.includes(f.username)
+                              ? prev.filter(u => u !== f.username)
+                              : [...prev, f.username]);
+                          }}
+                        >
+                          <span className="relative">
+                            <img src={f.profilePic ? `http://localhost:5000${f.profilePic}` : '/assets/profiles/profile.jpg'} alt={f.username} className="w-8 h-8 rounded-full object-cover" />
+                            {selected && (
+                              <span className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 border-2 border-white dark:border-neutral-900 rounded-full"></span>
+                            )}
+                          </span>
+                          <span className="font-semibold">{f.username}</span>
+                        </button>
+                      );
+                    })}
+                    {selectedShareUsers.length > 0 && (
+                      <button
+                        className="mt-2 w-full bg-blue-500 text-white py-2 rounded font-semibold hover:bg-blue-600 transition"
+                        onClick={() => {
+                          console.log('Send to:', selectedShareUsers);
+                          setShowShareDropdown(false);
+                          setSelectedShareUsers([]);
+                        }}
+                      >
+                        Send
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
           <button onClick={handleSave} disabled={loadingSaved}>
             {loadingSaved ? (
@@ -478,6 +560,7 @@ export default function Post({
               <FaRegBookmark className="w-5 h-5 cursor-pointer text-gray-700 dark:text-white" />
             )}
           </button>
+          
       </div>
 
       {/* Likes Count */}
