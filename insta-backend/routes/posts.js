@@ -302,10 +302,15 @@ router.get("/all", async (req, res) => {
   }
 });
 
-// ✅ Get all posts by username (this stays after)
+// ✅ Get all posts by username (including as collaborator)
 router.get("/:username", async (req, res) => {
   try {
-    const posts = await Post.find({ username: req.params.username }).sort({ createdAt: -1 });
+    const posts = await Post.find({
+      $or: [
+        { username: req.params.username },
+        { collaborators: req.params.username }
+      ]
+    }).sort({ createdAt: -1 });
     res.json(posts);
   } catch (err) {
     console.error("Error fetching user's posts:", err);
@@ -363,6 +368,22 @@ router.get('/:username/saved', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Server error while fetching saved posts" });
+  }
+});
+
+// Add a collaborator to a post
+router.post('/add-collaborator', async (req, res) => {
+  const { postId, username } = req.body;
+  try {
+    const post = await Post.findById(postId);
+    if (!post) return res.status(404).json({ error: 'Post not found' });
+    if (!post.collaborators.includes(username)) {
+      post.collaborators.push(username);
+      await post.save();
+    }
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to add collaborator' });
   }
 });
 

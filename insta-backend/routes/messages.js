@@ -9,7 +9,7 @@ router.get('/test', (req, res) => {
 
 // Send a new message
 router.post('/send', async (req, res) => {
-  const { sender, receiver, text } = req.body;
+  const { sender, receiver, text, type, fileUrl, caption, postId } = req.body;
   try {
     let conversation = await Conversation.findOne({
       participants: { $all: [sender, receiver] },
@@ -27,7 +27,17 @@ router.post('/send', async (req, res) => {
       conversation.deletedBy = conversation.deletedBy.filter(u => u !== sender);
     }
 
-    const newMessage = { sender, receiver, text, unreadBy: [receiver] };
+    const newMessage = {
+      sender,
+      receiver,
+      text,
+      type,
+      fileUrl,
+      caption,
+      postId,
+      unreadBy: [receiver],
+      deletedFor: [],
+    };
     conversation.messages.push(newMessage);
     await conversation.save();
 

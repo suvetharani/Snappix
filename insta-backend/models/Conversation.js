@@ -1,20 +1,15 @@
 const mongoose = require('mongoose');
 
 const MessageSchema = new mongoose.Schema({
-  sender: {
-    type: String,
-    required: true,
-  },
-  receiver: {
-    type: String,
-    required: true,
-  },
-  text: {
-    type: String,
-    required: true,
-  },
-  unreadBy: [{ type: String }], // usernames who haven't read this message
-  deletedFor: [{ type: String }], // usernames who deleted this message
+  sender: { type: String, required: true },
+  receiver: { type: String, required: true },
+  text: { type: String }, // not required for collab_invite
+  type: { type: String }, // e.g., 'collab_invite'
+  fileUrl: { type: String },
+  caption: { type: String },
+  postId: { type: String },
+  unreadBy: [{ type: String }],
+  deletedFor: [{ type: String }],
 }, { timestamps: true });
 
 const ConversationSchema = new mongoose.Schema({

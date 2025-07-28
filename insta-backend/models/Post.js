@@ -26,12 +26,14 @@ const postSchema = new mongoose.Schema(
     fileUrl: { type: String, required: true },
     likes: [{ type: String }],
     comments: [commentSchema],
-     // In models/Post.js
+    collaborators: {
+      type: [String], // array of usernames
+      default: []
+    },
     savedBy: {
       type: [String], // array of usernames or userIds who saved the post
       default: []
     }
-// Embedded comments with replies
   },
   { timestamps: true }
 );
