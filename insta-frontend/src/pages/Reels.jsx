@@ -1,10 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import {
-  FaHeart,
-  FaRegHeart,
-  FaComment,
-  FaBookmark,
+  FaRegComment,
   FaRegBookmark,
+  FaBookmark,
+  FaPlay,
+  FaVolumeMute,
+  FaVolumeUp,
+  FaEllipsisV,
+  FaTrash,
   FaLink,
   FaWhatsapp,
   FaFacebookMessenger,
@@ -12,6 +15,7 @@ import {
   FaEnvelope,
   FaXTwitter,
 } from "react-icons/fa6";
+import { BsStar, BsStarFill } from "react-icons/bs";
 import { FiX } from "react-icons/fi";
 import axios from "axios";
 import { Link } from "react-router-dom";
@@ -256,7 +260,7 @@ export default function Reels() {
         {/* Right actions */}
         <div className="absolute right-4 bottom-24 flex flex-col items-center gap-4 text-white">
           <button onClick={handleLike}>
-            {liked ? <FaHeart className="text-red-500" /> : <FaRegHeart />}
+            {liked ? <BsStarFill className="text-yellow-400" /> : <BsStar />}
           </button>
           <span
             className="text-white text-sm cursor-pointer hover:underline relative"
@@ -327,7 +331,7 @@ export default function Reels() {
           </span>
 
           <button onClick={() => setShowComments(true)}>
-            <FaComment />
+            <FaRegComment />
           </button>
           <span>{reels[currentReel]?.comments?.length || 0}</span>
 
@@ -410,9 +414,9 @@ export default function Reels() {
                               } catch (err) {}
                             }}>
                               {isLiked ? (
-                                <FaHeart className="text-red-500 text-sm" />
+                                <BsStarFill className="text-yellow-400 text-sm" />
                               ) : (
-                                <FaRegHeart className="text-sm" />
+                                <BsStar className="text-sm" />
                               )}
                             </button>
                             <span
@@ -483,9 +487,9 @@ export default function Reels() {
                                     } catch (err) {}
                                   }}>
                                     {isReplyLiked ? (
-                                      <FaHeart className="text-red-500 text-sm" />
+                                      <BsStarFill className="text-yellow-400 text-sm" />
                                     ) : (
-                                      <FaRegHeart className="text-sm" />
+                                      <BsStar className="text-sm" />
                                     )}
                                   </button>
                                   <span

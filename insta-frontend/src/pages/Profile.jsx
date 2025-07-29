@@ -6,13 +6,14 @@ import { Link } from "react-router-dom";
 import Picker from "@emoji-mart/react";
 import data from "@emoji-mart/data";
 import { useNavigate } from 'react-router-dom';
-import { FaEllipsisH, FaHeart, FaRegHeart, FaBookmark, FaRegBookmark } from "react-icons/fa";
+import { FaEllipsisH, FaBookmark, FaRegBookmark } from "react-icons/fa";
 import { FaEllipsisV } from "react-icons/fa";
 import { createPortal } from "react-dom";
 import { FaPlay } from "react-icons/fa";
 import { FaVolumeMute, FaVolumeUp } from "react-icons/fa";
 import { useCallback } from "react";
 import Post from "../components/Post";
+import { BsStar, BsStarFill } from "react-icons/bs";
 
 
 export default function Profile() {
@@ -688,9 +689,9 @@ function handleTouchEnd() {
                                         <div className="flex flex-col items-center">
                                           <button onClick={() => handleModalCommentLike(c._id)}>
                                             {isLiked ? (
-                                              <FaHeart className="text-red-500 text-sm" />
+                                              <BsStarFill className="text-yellow-400 text-sm" />
                                             ) : (
-                                              <FaRegHeart className="text-sm" />
+                                              <BsStar className="text-sm" />
                                             )}
                                           </button>
                                           <span className="text-xs text-gray-600 cursor-pointer hover:underline relative"
@@ -791,9 +792,9 @@ function handleTouchEnd() {
                                                 <div className="flex flex-col items-center">
                                                   <button onClick={() => handleModalReplyLike(c._id, r._id)}>
                                                     {isReplyLiked ? (
-                                                      <FaHeart className="text-red-500 text-sm" />
+                                                      <BsStarFill className="text-yellow-400 text-sm" />
                                                     ) : (
-                                                      <FaRegHeart className="text-sm" />
+                                                      <BsStar className="text-sm" />
                                                     )}
                                                   </button>
                                                   <span className="text-xs text-gray-600 cursor-pointer hover:underline">
@@ -817,7 +818,7 @@ function handleTouchEnd() {
                         <div className="absolute left-0 right-0 bottom-0 border-t bg-white dark:bg-black">
                           <div className="flex items-center px-1 py-1 relative">
                             <button
-                              className={`text-2xl transition-colors duration-200 ${isLiked ? "text-red-500" : "text-gray-600"}`}
+                              className={`text-2xl transition-colors duration-200 ${isLiked ? "text-yellow-400" : "text-gray-600"}`}
                               onClick={async () => {
                                 try {
                                   await axios.post(`http://localhost:5000/api/posts/${selectedPost._id}/like`, {
@@ -833,7 +834,7 @@ function handleTouchEnd() {
                                 } catch (err) {}
                               }}
                             >
-                              {isLiked ? <FaHeart /> : <FaRegHeart />}
+                              {isLiked ? <BsStarFill /> : <BsStar />}
                             </button>
                             <span
                               ref={postLikeCountRef}
@@ -1029,9 +1030,9 @@ function handleTouchEnd() {
                                             <div className="flex flex-col items-center">
                                               <button onClick={() => handleModalCommentLike(c._id)}>
                                                 {isLiked ? (
-                                                  <FaHeart className="text-red-500 text-sm" />
+                                                  <BsStarFill className="text-yellow-400 text-sm" />
                                                 ) : (
-                                                  <FaRegHeart className="text-sm" />
+                                                  <BsStar className="text-sm" />
                                                 )}
                                               </button>
                                               <span
@@ -1141,9 +1142,9 @@ function handleTouchEnd() {
                                                     <div className="flex flex-col items-center">
                                                       <button onClick={() => handleModalReplyLike(c._id, r._id)}>
                                                         {isReplyLiked ? (
-                                                          <FaHeart className="text-red-500 text-sm" />
+                                                          <BsStarFill className="text-yellow-400 text-sm" />
                                                         ) : (
-                                                          <FaRegHeart className="text-sm" />
+                                                          <BsStar className="text-sm" />
                                                         )}
                                                       </button>
                                                       <span className="text-xs text-gray-600 cursor-pointer hover:underline">
@@ -1168,7 +1169,7 @@ function handleTouchEnd() {
                           <div className="px-1 py-1">
                             <div className="flex items-center gap-2 relative">
                               <button
-                                className={`text-2xl transition-colors duration-200 ${isLiked ? "text-red-500" : "text-gray-600"}`}
+                                className={`text-2xl transition-colors duration-200 ${isLiked ? "text-yellow-400" : "text-gray-600"}`}
                                 onClick={async () => {
                                   try {
                                     await axios.post(`http://localhost:5000/api/posts/${selectedPost._id}/like`, {
@@ -1184,7 +1185,7 @@ function handleTouchEnd() {
                                   } catch (err) {}
                                 }}
                               >
-                                {isLiked ? <FaHeart /> : <FaRegHeart />}
+                                {isLiked ? <BsStarFill /> : <BsStar />}
                               </button>
                               <span
                                 ref={postLikeCountRef}
@@ -1348,9 +1349,9 @@ function handleTouchEnd() {
                                           <div className="flex flex-col items-center">
                                             <button onClick={() => handleModalCommentLike(c._id)}>
                                               {isLiked ? (
-                                                <FaHeart className="text-red-500 text-sm" />
+                                                <BsStarFill className="text-yellow-400 text-sm" />
                                               ) : (
-                                                <FaRegHeart className="text-sm" />
+                                                <BsStar className="text-sm" />
                                               )}
                                             </button>
                                             <span
@@ -1460,9 +1461,9 @@ function handleTouchEnd() {
                                                   <div className="flex flex-col items-center">
                                                     <button onClick={() => handleModalReplyLike(c._id, r._id)}>
                                                       {isReplyLiked ? (
-                                                        <FaHeart className="text-red-500 text-sm" />
+                                                        <BsStarFill className="text-yellow-400 text-sm" />
                                                       ) : (
-                                                        <FaRegHeart className="text-sm" />
+                                                        <BsStar className="text-sm" />
                                                       )}
                                                     </button>
                                                     <span className="text-xs text-gray-600 cursor-pointer hover:underline">
@@ -1485,7 +1486,7 @@ function handleTouchEnd() {
                           {/* Like, Save, and Like Count */}
                           <div className="flex items-center gap-2 px-1 py-1 relative">
                             <button
-                              className={`text-2xl transition-colors duration-200 ${isLiked ? "text-red-500" : "text-gray-600"}`}
+                              className={`text-2xl transition-colors duration-200 ${isLiked ? "text-yellow-400" : "text-gray-600"}`}
                               onClick={async () => {
                                 try {
                                   await axios.post(`http://localhost:5000/api/posts/${selectedPost._id}/like`, {
@@ -1501,7 +1502,7 @@ function handleTouchEnd() {
                                 } catch (err) {}
                               }}
                             >
-                              {isLiked ? <FaHeart /> : <FaRegHeart />}
+                              {isLiked ? <BsStarFill /> : <BsStar />}
                             </button>
                             <span
                               ref={postLikeCountRef}
@@ -2121,9 +2122,9 @@ function handleTouchEnd() {
                                       <div className="flex flex-col items-center">
                                         <button onClick={() => handleModalCommentLike(c._id)}>
                                           {isLiked ? (
-                                            <FaHeart className="text-red-500 text-sm" />
+                                            <BsStarFill className="text-yellow-400 text-sm" />
                                           ) : (
-                                            <FaRegHeart className="text-sm" />
+                                            <BsStar className="text-sm" />
                                           )}
                                         </button>
                                         <span className="text-xs text-gray-600 cursor-pointer hover:underline relative"
@@ -2224,9 +2225,9 @@ function handleTouchEnd() {
                                               <div className="flex flex-col items-center">
                                                 <button onClick={() => handleModalReplyLike(c._id, r._id)}>
                                                   {isReplyLiked ? (
-                                                    <FaHeart className="text-red-500 text-sm" />
+                                                    <BsStarFill className="text-yellow-400 text-sm" />
                                                   ) : (
-                                                    <FaRegHeart className="text-sm" />
+                                                    <BsStar className="text-sm" />
                                                   )}
                                                 </button>
                                                 <span className="text-xs text-gray-600 cursor-pointer hover:underline">
@@ -2250,7 +2251,7 @@ function handleTouchEnd() {
                       <div className="absolute left-0 right-0 bottom-0 border-t bg-white dark:bg-black">
                         <div className="flex items-center px-1 py-1 relative">
                           <button
-                            className={`text-2xl transition-colors duration-200 ${isLiked ? "text-red-500" : "text-gray-600"}`}
+                            className={`text-2xl transition-colors duration-200 ${isLiked ? "text-yellow-400" : "text-gray-600"}`}
                             onClick={async () => {
                               try {
                                 await axios.post(`http://localhost:5000/api/posts/${selectedPost._id}/like`, {
@@ -2266,7 +2267,7 @@ function handleTouchEnd() {
                               } catch (err) {}
                             }}
                           >
-                            {isLiked ? <FaHeart /> : <FaRegHeart />}
+                            {isLiked ? <BsStarFill /> : <BsStar />}
                           </button>
                           <span
                             ref={postLikeCountRef}
@@ -2462,9 +2463,9 @@ function handleTouchEnd() {
                                           <div className="flex flex-col items-center">
                                             <button onClick={() => handleModalCommentLike(c._id)}>
                                               {isLiked ? (
-                                                <FaHeart className="text-red-500 text-sm" />
+                                                <BsStarFill className="text-yellow-400 text-sm" />
                                               ) : (
-                                                <FaRegHeart className="text-sm" />
+                                                <BsStar className="text-sm" />
                                               )}
                                             </button>
                                             <span
@@ -2574,9 +2575,9 @@ function handleTouchEnd() {
                                                   <div className="flex flex-col items-center">
                                                     <button onClick={() => handleModalReplyLike(c._id, r._id)}>
                                                       {isReplyLiked ? (
-                                                        <FaHeart className="text-red-500 text-sm" />
+                                                        <BsStarFill className="text-yellow-400 text-sm" />
                                                       ) : (
-                                                        <FaRegHeart className="text-sm" />
+                                                        <BsStar className="text-sm" />
                                                       )}
                                                     </button>
                                                     <span className="text-xs text-gray-600 cursor-pointer hover:underline">
@@ -2601,7 +2602,7 @@ function handleTouchEnd() {
                         <div className="px-1 py-1">
                           <div className="flex items-center gap-2 relative">
                             <button
-                              className={`text-2xl transition-colors duration-200 ${isLiked ? "text-red-500" : "text-gray-600"}`}
+                              className={`text-2xl transition-colors duration-200 ${isLiked ? "text-yellow-400" : "text-gray-600"}`}
                               onClick={async () => {
                                 try {
                                   await axios.post(`http://localhost:5000/api/posts/${selectedPost._id}/like`, {
@@ -2617,7 +2618,7 @@ function handleTouchEnd() {
                                 } catch (err) {}
                               }}
                             >
-                              {isLiked ? <FaHeart /> : <FaRegHeart />}
+                              {isLiked ? <BsStarFill /> : <BsStar />}
                             </button>
                             <span
                               ref={postLikeCountRef}
@@ -2780,9 +2781,9 @@ function handleTouchEnd() {
                                         <div className="flex flex-col items-center">
                                           <button onClick={() => handleModalCommentLike(c._id)}>
                                             {isLiked ? (
-                                              <FaHeart className="text-red-500 text-sm" />
+                                              <BsStarFill className="text-yellow-400 text-sm" />
                                             ) : (
-                                              <FaRegHeart className="text-sm" />
+                                              <BsStar className="text-sm" />
                                             )}
                                           </button>
                                           <span
@@ -2892,9 +2893,9 @@ function handleTouchEnd() {
                                                 <div className="flex flex-col items-center">
                                                   <button onClick={() => handleModalReplyLike(c._id, r._id)}>
                                                     {isReplyLiked ? (
-                                                      <FaHeart className="text-red-500 text-sm" />
+                                                      <BsStarFill className="text-yellow-400 text-sm" />
                                                     ) : (
-                                                      <FaRegHeart className="text-sm" />
+                                                      <BsStar className="text-sm" />
                                                     )}
                                                   </button>
                                                   <span className="text-xs text-gray-600 cursor-pointer hover:underline">
@@ -2917,7 +2918,7 @@ function handleTouchEnd() {
                         {/* Like, Save, and Like Count */}
                         <div className="flex items-center gap-2 px-1 py-1 relative">
                           <button
-                            className={`text-2xl transition-colors duration-200 ${isLiked ? "text-red-500" : "text-gray-600"}`}
+                            className={`text-2xl transition-colors duration-200 ${isLiked ? "text-yellow-400" : "text-gray-600"}`}
                             onClick={async () => {
                               try {
                                 await axios.post(`http://localhost:5000/api/posts/${selectedPost._id}/like`, {
@@ -2933,7 +2934,7 @@ function handleTouchEnd() {
                               } catch (err) {}
                             }}
                           >
-                            {isLiked ? <FaHeart /> : <FaRegHeart />}
+                            {isLiked ? <BsStarFill /> : <BsStar />}
                           </button>
                           <span
                             ref={postLikeCountRef}

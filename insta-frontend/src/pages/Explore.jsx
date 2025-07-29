@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
-import { FaHeart, FaRegComment, FaBookmark,FaRegHeart, FaRegBookmark, FaVolumeMute, FaVolumeUp, FaPlay, FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { FaRegComment, FaBookmark, FaRegBookmark, FaVolumeMute, FaVolumeUp, FaPlay, FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { BsStar, BsStarFill } from "react-icons/bs";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import Picker from "@emoji-mart/react";
@@ -245,7 +246,7 @@ export default function Explore() {
             {/* Hover overlay */}
             <div className="absolute inset-0 bg-black bg-opacity-30 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white font-semibold space-x-4 transition">
               <div className="flex items-center gap-1">
-                <FaHeart className="text-lg" />
+                <BsStarFill className="text-yellow-400 text-lg" />
                 <span>{post.likes?.length || 0}</span>
               </div>
               <div className="flex items-center gap-1">
@@ -341,9 +342,9 @@ export default function Explore() {
                                   <div className="flex flex-col items-center">
                                     <button onClick={() => handleModalCommentLike(c._id)}>
                                       {isLiked ? (
-                                        <FaHeart className="text-red-500 text-sm" />
+                                        <BsStarFill className="text-yellow-400 text-sm" />
                                       ) : (
-                                        <FaRegHeart className="text-sm" />
+                                        <BsStar className="text-sm" />
                                       )}
                                     </button>
                                     <span className="text-xs text-gray-600 cursor-pointer hover:underline relative"
@@ -447,9 +448,9 @@ export default function Explore() {
                                           <div className="flex flex-col items-center">
                                             <button onClick={() => handleModalReplyLike(c._id, r._id)}>
                                               {isReplyLiked ? (
-                                                <FaHeart className="text-red-500 text-sm" />
+                                                <BsStarFill className="text-yellow-400 text-sm" />
                                               ) : (
-                                                <FaRegHeart className="text-sm" />
+                                                <BsStar className="text-sm" />
                                               )}
                                             </button>
                                             <span className="text-xs text-gray-600 cursor-pointer hover:underline">
@@ -489,7 +490,7 @@ export default function Explore() {
                           } catch (err) {}
                         }}
                       >
-                        {isLiked ? <FaHeart /> : <FaRegHeart />}
+                        {isLiked ? <BsStarFill /> : <BsStar />}
                       </button>
                       <span
                         ref={postLikeCountRef}
@@ -703,9 +704,9 @@ export default function Explore() {
                                   <div className="flex flex-col items-center">
                                     <button onClick={() => handleModalCommentLike(c._id)}>
                                       {isLiked ? (
-                                        <FaHeart className="text-red-500 text-sm" />
+                                        <BsStarFill className="text-yellow-400 text-sm" />
                                       ) : (
-                                        <FaRegHeart className="text-sm" />
+                                        <BsStar className="text-sm" />
                                       )}
                                     </button>
                                     <span
@@ -810,9 +811,9 @@ export default function Explore() {
                                           <div className="flex flex-col items-center">
                                             <button onClick={() => handleModalReplyLike(c._id, r._id)}>
                                               {isReplyLiked ? (
-                                                <FaHeart className="text-red-500 text-sm" />
+                                                <BsStarFill className="text-yellow-400 text-sm" />
                                               ) : (
-                                                <FaRegHeart className="text-sm" />
+                                                <BsStar className="text-sm" />
                                               )}
                                             </button>
                                             <span className="text-xs text-gray-600 cursor-pointer hover:underline">
@@ -852,7 +853,7 @@ export default function Explore() {
                           } catch (err) {}
                         }}
                       >
-                        {isLiked ? <FaHeart /> : <FaRegHeart />}
+                        {isLiked ? <BsStarFill /> : <BsStar />}
                       </button>
                       <span
                         ref={postLikeCountRef}

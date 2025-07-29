@@ -2,8 +2,6 @@ import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import {
-  FaRegHeart,
-  FaHeart,
   FaRegComment,
   FaRegPaperPlane,
   FaRegBookmark,
@@ -695,9 +693,9 @@ export default function Post({
                           <div className="flex flex-col items-center">
                             <button onClick={() => handleCommentLike(c._id)}>
                               {isLiked ? (
-                                <FaHeart className="text-red-500 text-sm" />
+                                <BsStarFill className="text-yellow-400 text-sm" />
                               ) : (
-                                <FaRegHeart className="text-sm" />
+                                <BsStar className="text-sm" />
                               )}
                             </button>
                             <span
@@ -760,9 +758,9 @@ export default function Post({
                                     <div className="flex flex-col items-center">
                                       <button onClick={() => handleReplyLike(c._id, r._id)}>
                                         {isReplyLiked ? (
-                                          <FaHeart className="text-red-500 text-sm" />
+                                          <BsStarFill className="text-yellow-400 text-sm" />
                                         ) : (
-                                          <FaRegHeart className="text-sm" />
+                                          <BsStar className="text-sm" />
                                         )}
                                       </button>
                                       <span
@@ -914,7 +912,7 @@ export default function Post({
                               </span>
                               <div className="flex flex-col items-center">
                                 <button onClick={() => handleModalCommentLike(c._id)}>
-                                  {isCommentLiked ? <FaHeart className="text-red-500 text-sm" /> : <FaRegHeart className="text-sm" />}
+                                  {isCommentLiked ? <BsStarFill className="text-yellow-400 text-sm" /> : <BsStar className="text-sm" />}
                                 </button>
                                 <span className="text-xs text-gray-600 cursor-pointer hover:underline" onClick={(e) => { setShowCommentLikers((prev) => ({ ...Object.keys(prev).reduce((acc, key) => ({ ...acc, [key]: false }), {}), [c._id]: !prev[c._id] })); const rect = e.target.getBoundingClientRect(); setDropdownPos((prev) => ({ ...prev, [c._id]: { left: rect.left - 150, top: rect.top - 120 } })); }}>
                                   {c.likes?.length || 0}
@@ -945,7 +943,7 @@ export default function Post({
                                     <span className="text-xs text-blue-500 cursor-pointer" onClick={() => { setModalReplyTo(c._id); setModalReplyInput(`@${r.username} `); commentInputRef.current?.focus(); }}>Reply</span>
                                     <div className="flex flex-col items-center">
                                       <button onClick={() => handleModalReplyLike(c._id, r._id)}>
-                                        {isReplyLiked ? <FaHeart className="text-red-500 text-sm" /> : <FaRegHeart className="text-sm" />}
+                                        {isReplyLiked ? <BsStarFill className="text-yellow-400 text-sm" /> : <BsStar className="text-sm" />}
                                       </button>
                                       <span className="text-xs text-gray-600">{r.likes?.length || 0}</span>
                                     </div>
@@ -963,8 +961,8 @@ export default function Post({
               {/* Actions & Input */}
               <div className="px-1 py-1">
                 <div className="flex items-center gap-2 relative">
-                  <button className={`text-2xl ${modalIsLiked ? "text-red-500" : "text-gray-600"}`} onClick={async () => { await axios.post(`http://localhost:5000/api/posts/${profileModalPost._id}/like`, { username: currentUser }); setModalIsLiked(!modalIsLiked); setProfileModalPost(p => ({ ...p, likes: p.likes.includes(currentUser) ? p.likes.filter(u => u !== currentUser) : [...p.likes, currentUser] })); }}>
-                    {modalIsLiked ? <FaHeart /> : <FaRegHeart />}
+                  <button className={`text-2xl ${modalIsLiked ? "text-yellow-400" : "text-gray-600"}`} onClick={async () => { await axios.post(`http://localhost:5000/api/posts/${profileModalPost._id}/like`, { username: currentUser }); setModalIsLiked(!modalIsLiked); setProfileModalPost(p => ({ ...p, likes: p.likes.includes(currentUser) ? p.likes.filter(u => u !== currentUser) : [...p.likes, currentUser] })); }}>
+                    {modalIsLiked ? <BsStarFill /> : <BsStar />}
                   </button>
                   <span ref={postLikeCountRef} className="text-sm cursor-pointer hover:underline" onClick={async (e) => { const res = await axios.get(`http://localhost:5000/api/posts/${profileModalPost._id}/likers`); setModalLikers(res.data.likers); setShowModalLikers(p => !p); const rect = e.target.getBoundingClientRect(); setPostDropdownPos({ left: rect.left - 260, top: rect.top - 240 }); }}>
                     {profileModalPost.likes?.length || 0} likes
