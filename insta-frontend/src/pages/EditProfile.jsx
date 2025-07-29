@@ -71,9 +71,9 @@ export default function EditProfile() {
   if (loading) return <p className="text-center py-20 text-gray-500">Loading...</p>;
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50 px-4">
-      <div className="bg-white shadow-xl rounded-2xl p-8 w-full max-w-lg">
-        <h2 className="text-3xl font-bold mb-6 text-center">Edit Profile</h2>
+    <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-black px-4">
+      <div className="bg-white dark:bg-neutral-900 shadow-xl rounded-2xl p-8 w-full max-w-lg">
+        <h2 className="text-3xl font-bold mb-6 text-center text-black dark:text-white">Edit Profile</h2>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           <div className="flex flex-col items-center">
@@ -82,33 +82,33 @@ export default function EditProfile() {
               alt="Profile"
               className="w-28 h-28 rounded-full border object-cover mb-4"
             />
-            <label className="text-sm font-medium text-gray-700 mb-2">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Change Profile Picture
             </label>
             <input
               type="file"
               onChange={handleFile}
-              className="text-sm text-gray-600"
+              className="text-sm text-gray-600 dark:text-gray-400"
             />
           </div>
 
           <div>
-            <label className="block mb-1 font-medium text-gray-700">Username</label>
+            <label className="block mb-1 font-medium text-gray-700 dark:text-gray-300">Username</label>
             <input
               value={username}
               disabled
-              className="border px-4 py-2 rounded w-full bg-gray-100 cursor-not-allowed"
+              className="border px-4 py-2 rounded w-full bg-gray-100 dark:bg-gray-800 cursor-not-allowed text-gray-600 dark:text-gray-400"
             />
           </div>
 
           <div>
-            <label className="block mb-1 font-medium text-gray-700">Bio</label>
+            <label className="block mb-1 font-medium text-gray-700 dark:text-gray-300">Bio</label>
             <textarea
               value={bio}
               onChange={(e) => setBio(e.target.value)}
               rows={3}
               placeholder="Tell something about yourself..."
-              className="border px-4 py-2 rounded w-full resize-none"
+              className="border px-4 py-2 rounded w-full resize-none bg-white dark:bg-neutral-900 dark:text-white border-gray-300 dark:border-gray-700"
             />
           </div>
 
@@ -116,7 +116,7 @@ export default function EditProfile() {
             <button
               type="button"
               onClick={handleCancel}
-              className="px-5 py-2 rounded border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
+              className="px-5 py-2 rounded border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
             >
               Cancel
             </button>

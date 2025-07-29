@@ -31,13 +31,11 @@ export default function Sidebar({ isOpen, setIsOpen, onReportOpen }) {
   const [showSearch, setShowSearch] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [showMore, setShowMore] = useState(false);
-  const [showAppearance, setShowAppearance] = useState(false);
   const [darkMode, setDarkMode] = useState(() => {
     // Check localStorage for persisted theme
     const stored = localStorage.getItem('darkMode');
     return stored === 'true';
   });
-  const [showAppearanceDropdown, setShowAppearanceDropdown] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [isReportOpen, setIsReportOpen] = useState(false);
@@ -216,12 +214,7 @@ const removeRecent = (username) => {
               )}
             </Link>
 
-            <Link
-              to="/notifications"
-              className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 px-2 py-2 rounded w-full"
-            >
-              <FiBell /> {isOpen && !showSearch && "Notifications"}
-            </Link>
+
 
             <button
               onClick={() => {
@@ -229,7 +222,7 @@ const removeRecent = (username) => {
                 setShowMore(false);
                 setShowSearch(false);
               }}
-              className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 text-left px-2 py-2 rounded w-full"
+              className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 text-left px-2 py-2 rounded w-full tablet:block hidden"
             >
               <FiEdit3 /> {isOpen && !showSearch && "Create"}
             </button>
@@ -255,16 +248,20 @@ const removeRecent = (username) => {
             </Link>
 
 
+            {/* Switch Appearance */}
             <button
-              onClick={() => {
-                setShowMore(!showMore);
-                setShowCreate(false);
-                setShowSearch(false);
-                setShowAppearanceDropdown(false);
-              }}
+              onClick={toggleDarkMode}
               className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 text-left px-2 py-2 rounded w-full"
             >
-              <FiMenu /> {isOpen && !showSearch && "More"}
+              {darkMode ? <FiMoon /> : <FiSun />} {isOpen && !showSearch && "Switch Appearance"}
+            </button>
+
+            {/* Log Out */}
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 text-left px-2 py-2 rounded w-full text-red-500"
+            >
+              <FiLogOut /> {isOpen && !showSearch && "Log Out"}
             </button>
           </nav>
 
@@ -346,85 +343,9 @@ const removeRecent = (username) => {
   )}
 
 
-          {showMore && isOpen && !showAppearanceDropdown && (
-            <div className="absolute top-40 left-4 w-56 bg-white dark:bg-neutral-900 border dark:border-gray-800 shadow-lg rounded p-2 z-50">
-              <Link
-                to="/settings"
-                className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800"
-              >
-                <FiSettings /> Settings
-              </Link>
-              <Link
-                to="/activity"
-                className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800"
-              >
-                <FiClock /> Your Activity
-              </Link>
-              <Link
-                to="/saved"
-                className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800"
-              >
-                <FiBookmark /> Saved
-              </Link>
-              <button
-                onClick={() => {
-                  setShowMore(false);
-                  setShowAppearanceDropdown(true);
-                }}
-                className="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800"
-              >
-                {darkMode ? <FiMoon /> : <FiSun />} Switch Appearance
-              </button>
-              <Link
-                onClick={(e) => {
-                  e.preventDefault();
-                  setShowMore(false);
-                  if (typeof onReportOpen === 'function') onReportOpen();
-                }}
-                to="#"
-                className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800"
-              >
-                <FiAlertCircle /> Report a Problem
-              </Link>
 
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-2 w-full text-left px-4 py-2 text-red-500 hover:bg-gray-100 dark:hover:bg-gray-800"
-              >
-                <FiLogOut /> Log Out
-              </button>
-            </div>
-          )}
 
-          {/* Appearance Dropdown */}
-          {showAppearanceDropdown && isOpen && (
-            <div className="absolute top-40 left-4 w-56 bg-white dark:bg-neutral-900 border dark:border-gray-800 shadow-lg rounded p-2 z-50">
-              <div className="px-4 py-2 font-semibold text-left flex items-center gap-2">
-                Switch Appearance
-                {darkMode ? <FiMoon /> : <FiSun />}
-              </div>
-              <div className="flex items-center justify-between px-4 py-2">
-                <span className="text-sm">Dark Mode</span>
-                <button
-                  onClick={toggleDarkMode}
-                  aria-label="Toggle dark mode"
-                  className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors duration-200 focus:outline-none mx-2 ${darkMode ? 'bg-blue-600' : 'bg-gray-300'}`}
-                >
-                  <span
-                    className={`inline-block w-5 h-5 transform bg-white rounded-full shadow transition-transform duration-200 ${darkMode ? 'translate-x-5' : 'translate-x-1'}`}
-                  />
-                </button>
-              </div>
-              <button
-                onClick={() => {
-                  setShowAppearanceDropdown(false);
-                }}
-                className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 text-blue-500"
-              >
-                Close
-              </button>
-            </div>
-          )}
+
         </div>
       </aside>
 
@@ -439,9 +360,6 @@ const removeRecent = (username) => {
         <Link to="/reels" className="flex-1 flex flex-col items-center justify-center py-2">
           <FiFilm className="text-2xl" />
         </Link>
-        <button onClick={() => setShowCreate(!showCreate)} className="flex-1 flex flex-col items-center justify-center py-2">
-          <FiEdit3 className="text-2xl" />
-        </button>
         <Link to="/messages" className="flex-1 flex flex-col items-center justify-center py-2 relative">
           <FiMessageCircle className="text-2xl" />
           {unreadUserCount > 0 && (
@@ -462,6 +380,27 @@ const removeRecent = (username) => {
           )}
         </Link>
       </nav>
+
+      {/* Mobile top bar with search and appearance toggle */}
+      <div className="fixed top-0 left-0 w-full bg-white dark:bg-black border-b dark:border-gray-800 px-4 py-2 z-50 tablet:hidden">
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-semibold text-black dark:text-white">Instagram</h1>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={toggleDarkMode}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"
+            >
+              {darkMode ? <FiMoon className="text-xl" /> : <FiSun className="text-xl" />}
+            </button>
+            <button
+              onClick={() => setShowSearch(!showSearch)}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"
+            >
+              <FiSearch className="text-xl" />
+            </button>
+          </div>
+        </div>
+      </div>
       {showSearch && isOpen && (
         <div className="fixed top-0 left-20 h-screen w-[397px] bg-white dark:bg-neutral-900 dark:text-white border-x dark:border-gray-800 rounded-r-2xl shadow-lg z-40 p-4 flex flex-col transition-all duration-300">
           <h2 className="text-2xl font-bold mt-4 mb-6 px-2">Search</h2>

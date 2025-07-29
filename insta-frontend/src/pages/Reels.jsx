@@ -3,7 +3,6 @@ import {
   FaHeart,
   FaRegHeart,
   FaComment,
-  FaPaperPlane,
   FaBookmark,
   FaRegBookmark,
   FaLink,
@@ -13,7 +12,6 @@ import {
   FaEnvelope,
   FaXTwitter,
 } from "react-icons/fa6";
-import { FaEllipsisH } from "react-icons/fa";
 import { FiX } from "react-icons/fi";
 import axios from "axios";
 import { Link } from "react-router-dom";
@@ -28,8 +26,6 @@ export default function Reels() {
   const [currentReel, setCurrentReel] = useState(0);
   const [liked, setLiked] = useState(false);
   const [showComments, setShowComments] = useState(false);
-  const [showShare, setShowShare] = useState(false);
-  const [showMenu, setShowMenu] = useState(false);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [showEmoji, setShowEmoji] = useState(false);
@@ -38,13 +34,13 @@ export default function Reels() {
   const [showVideoLikers, setShowVideoLikers] = useState(false);
   const [videoLikers, setVideoLikers] = useState([]);
   const [videoLikersDropdownPos, setVideoLikersDropdownPos] = useState(null);
+  const [visibleReplies, setVisibleReplies] = useState({});
+  const [dropdownPos, setDropdownPos] = useState({});
   const scrollTimeout = useRef();
   const lastScrollY = useRef(0);
   const touchStartY = useRef(null);
   
-  // Share functionality state
-  const [followings, setFollowings] = useState([]);
-  const [selectedShareUsers, setSelectedShareUsers] = useState([]);
+
   
   // Save functionality state
   const [saved, setSaved] = useState(false);
@@ -67,20 +63,7 @@ export default function Reels() {
     fetchReels();
   }, []);
 
-  // Fetch followings when share modal opens
-  useEffect(() => {
-    if (showShare) {
-      const fetchFollowings = async () => {
-        try {
-          const res = await axios.get(`http://localhost:5000/api/profile/${currentUsername}`);
-          setFollowings(res.data.following || []);
-        } catch (err) {
-          setFollowings([]);
-        }
-      };
-      fetchFollowings();
-    }
-  }, [showShare, currentUsername]);
+
 
   useEffect(() => {
     videoRefs.current.forEach((video, index) => {
@@ -194,6 +177,13 @@ export default function Reels() {
     setNewComment((prev) => prev + emoji);
   };
 
+  const toggleReplies = (commentId) => {
+    setVisibleReplies((prev) => ({
+      ...prev,
+      [commentId]: !prev[commentId],
+    }));
+  };
+
   if (reels.length === 0) {
     return <div className="text-center p-10">No reels found.</div>;
   }
@@ -300,6 +290,7 @@ export default function Reels() {
             {showVideoLikers && videoLikers.length > 0 && videoLikersDropdownPos &&
               createPortal(
                 <div
+                  className="bg-white dark:bg-neutral-900 border dark:border-gray-700 text-black dark:text-white"
                   style={{
                     position: 'fixed',
                     left: videoLikersDropdownPos.left,
@@ -308,8 +299,6 @@ export default function Reels() {
                     width: '16rem',
                     maxHeight: '15rem',
                     overflowY: 'auto',
-                    background: 'white',
-                    border: '1px solid #e5e7eb',
                     borderRadius: '0.375rem',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
                     padding: '0.75rem',
@@ -320,7 +309,7 @@ export default function Reels() {
                     <Link
                       key={i}
                       to={`/profile/${user.username}`}
-                      className="flex items-center gap-3 p-1 rounded hover:bg-gray-100"
+                      className="flex items-center gap-3 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
                       onClick={() => setShowVideoLikers(false)}
                     >
                       <img
@@ -342,11 +331,6 @@ export default function Reels() {
           </button>
           <span>{reels[currentReel]?.comments?.length || 0}</span>
 
-          <button onClick={() => setShowShare(true)}>
-            <FaPaperPlane />
-          </button>
-          <span>{reels[currentReel]?.shares || 0}</span>
-
           <button onClick={handleSave} disabled={loadingSaved}>
             {loadingSaved ? (
               <span className="w-5 h-5 inline-block animate-spin">⏳</span>
@@ -355,9 +339,6 @@ export default function Reels() {
             ) : (
               <FaRegBookmark className="w-5 h-5 cursor-pointer text-white" />
             )}
-          </button>
-          <button onClick={() => setShowMenu(!showMenu)}>
-            <FaEllipsisH />
           </button>
         </div>
 
@@ -444,10 +425,10 @@ export default function Reels() {
                             </span>
                             {/* Likers Dropdown */}
                             {showCommentLikers?.[c._id] && c.likes?.length > 0 && (
-                              <div className="absolute top-6 right-6 bg-white border shadow-md rounded-md text-xs w-40 max-h-32 overflow-y-auto p-2 z-50">
-                                <p className="font-semibold mb-1">Liked by:</p>
+                              <div className="absolute top-6 right-6 bg-white dark:bg-neutral-900 border dark:border-gray-700 shadow-md rounded-md text-xs w-40 max-h-32 overflow-y-auto p-2 z-50">
+                                <p className="font-semibold mb-1 text-black dark:text-white">Liked by:</p>
                                 {c.likes.map((user, i) => (
-                                  <Link key={i} to={`/profile/${user}`} className="block text-blue-600 hover:underline" onClick={() => setShowComments(false)}>{user}</Link>
+                                  <Link key={i} to={`/profile/${user}`} className="block text-blue-600 dark:text-blue-400 hover:underline" onClick={() => setShowComments(false)}>{user}</Link>
                                 ))}
                               </div>
                             )}
@@ -459,16 +440,16 @@ export default function Reels() {
                     {c.replies && c.replies.length > 0 && (
                       <div className="ml-4 mt-1 border-l border-gray-200 pl-3 space-y-2">
                         <span
-                          onClick={() => setComments((prev) => prev.map(com => com._id === c._id ? { ...com, showReplies: !com.showReplies } : com))}
+                          onClick={() => toggleReplies(c._id)}
                           className="text-xs text-blue-500 cursor-pointer"
                         >
-                          {c.showReplies ? `Hide replies` : `View replies (${c.replies.length})`}
+                          {visibleReplies[c._id] ? `Hide replies` : `View all ${c.replies.length} replies`}
                         </span>
-                        {c.showReplies && c.replies.map((r) => {
+                        {visibleReplies[c._id] && c.replies.map((r) => {
                           const isReplyLiked = r.likes?.includes(currentUsername);
                           return (
                             <div key={r._id} className="flex items-start justify-between group">
-                              <p className="text-sm text-gray-700">
+                              <p className="text-sm text-gray-700 dark:text-gray-300">
                                 <Link
                                   to={`/profile/${r.username}`}
                                   className="font-semibold hover:underline"
@@ -517,10 +498,10 @@ export default function Reels() {
                                   </span>
                                   {/* Likers Dropdown for replies */}
                                   {showCommentLikers?.[r._id] && r.likes?.length > 0 && (
-                                    <div className="absolute top-6 right-6 bg-white border shadow-md rounded-md text-xs w-40 max-h-32 overflow-y-auto p-2 z-50">
-                                      <p className="font-semibold mb-1">Liked by:</p>
+                                    <div className="absolute top-6 right-6 bg-white dark:bg-neutral-900 border dark:border-gray-700 shadow-md rounded-md text-xs w-40 max-h-32 overflow-y-auto p-2 z-50">
+                                      <p className="font-semibold mb-1 text-black dark:text-white">Liked by:</p>
                                       {r.likes.map((user, i) => (
-                                        <Link key={i} to={`/profile/${user}`} className="block text-blue-600 hover:underline" onClick={() => setShowComments(false)}>{user}</Link>
+                                        <Link key={i} to={`/profile/${user}`} className="block text-blue-600 dark:text-blue-400 hover:underline" onClick={() => setShowComments(false)}>{user}</Link>
                                       ))}
                                     </div>
                                   )}
@@ -560,7 +541,7 @@ export default function Reels() {
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
                 placeholder="Add a comment..."
-                className="flex-1 border rounded px-2 py-1"
+                className="flex-1 border rounded px-2 py-1 bg-white dark:bg-neutral-900 dark:text-white border-gray-300 dark:border-gray-700"
               />
               <button
                 onClick={handlePostComment}
@@ -573,112 +554,7 @@ export default function Reels() {
           </div>
         )}
 
-        {/* Share popup */}
-        {showShare && (
-          <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-80 z-50">
-            <div className="bg-white dark:bg-neutral-900 dark:text-white w-full max-w-sm rounded-lg p-4 relative">
-              <button
-                onClick={() => setShowShare(false)}
-                className="absolute top-4 right-4"
-              >
-                <FiX className="text-xl" />
-              </button>
-              <h2 className="text-center font-semibold mb-4">Share</h2>
-              <div className="grid grid-cols-3 gap-4 mb-4">
-                {followings.length === 0 ? (
-                  <div className="text-gray-500 text-sm col-span-3 text-center">You are not following anyone.</div>
-                ) : (
-                  followings.map(f => {
-                    const selected = selectedShareUsers.includes(f.username);
-                    return (
-                      <button
-                        key={f.username}
-                        className={`flex flex-col items-center p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${selected ? 'bg-blue-50 dark:bg-blue-900' : ''}`}
-                        onClick={e => {
-                          e.preventDefault();
-                          setSelectedShareUsers(prev => prev.includes(f.username)
-                            ? prev.filter(u => u !== f.username)
-                            : [...prev, f.username]);
-                        }}
-                      >
-                        <span className="relative">
-                          <img src={f.profilePic ? `http://localhost:5000${f.profilePic}` : '/assets/profiles/profile.jpg'} alt={f.username} className="w-12 h-12 rounded-full object-cover" />
-                          {selected && (
-                            <span className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 border-2 border-white dark:border-neutral-900 rounded-full"></span>
-                          )}
-                        </span>
-                        <span className="text-xs mt-1">{f.username}</span>
-                      </button>
-                    );
-                  })
-                )}
-              </div>
-              {selectedShareUsers.length > 0 && (
-                <button
-                  className="w-full bg-blue-500 text-white py-2 rounded font-semibold hover:bg-blue-600 transition mb-4"
-                  onClick={async () => {
-                    try {
-                      // Send the reel to each selected user
-                      for (const username of selectedShareUsers) {
-                        await axios.post('http://localhost:5000/api/messages/send', {
-                          sender: currentUsername,
-                          receiver: username,
-                          type: "collab_invite",
-                          postId: reels[currentReel]._id,
-                          fileUrl: reels[currentReel].fileUrl,
-                          caption: reels[currentReel].caption
-                        });
-                      }
-                      
-                      setShowShare(false);
-                      setSelectedShareUsers([]);
-                    } catch (err) {
-                      console.error('Failed to send reel:', err);
-                    }
-                  }}
-                >
-                  Send
-                </button>
-              )}
-            </div>
-          </div>
-        )}
 
-        {/* Three dots menu */}
-        {showMenu && (
-          <div className="absolute right-4 bottom-4 bg-white dark:bg-neutral-900 dark:text-white rounded shadow-lg z-50 w-48 p-2">
-            <button
-              className="w-full text-left py-2 hover:bg-gray-100 dark:hover:bg-gray-800"
-              onClick={() => alert("Reported")}
-            >
-              Report
-            </button>
-            <button className="w-full text-left py-2 hover:bg-gray-100 dark:hover:bg-gray-800">
-              Follow
-            </button>
-            <button className="w-full text-left py-2 hover:bg-gray-100 dark:hover:bg-gray-800">
-              Go to Post
-            </button>
-            <button className="w-full text-left py-2 hover:bg-gray-100 dark:hover:bg-gray-800">
-              Share to...
-            </button>
-            <button className="w-full text-left py-2 hover:bg-gray-100 dark:hover:bg-gray-800">
-              Copy Link
-            </button>
-            <button className="w-full text-left py-2 hover:bg-gray-100 dark:hover:bg-gray-800">
-              Embed
-            </button>
-            <button className="w-full text-left py-2 hover:bg-gray-100 dark:hover:bg-gray-800">
-              About this Account
-            </button>
-            <button
-              className="w-full text-left py-2 text-red-500 hover:bg-gray-100 dark:hover:bg-gray-800"
-              onClick={() => setShowMenu(false)}
-            >
-              Cancel
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );

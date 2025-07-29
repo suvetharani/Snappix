@@ -269,7 +269,7 @@ export default function Explore() {
           <div className="bg-white dark:bg-black dark:text-white rounded shadow-md flex flex-row w-auto max-w-4xl relative overflow-hidden">
             {/* X Close Button */}
             <button
-              className="absolute top-2 right-2 text-2xl text-gray-500 hover:text-black z-50 bg-white rounded-full p-1"
+              className="absolute top-2 right-2 text-2xl text-white hover:text-gray-300 z-50"
               onClick={() => {
                 setSelectedPost(null);
                 setCurrentIndex(null);
@@ -384,6 +384,7 @@ export default function Explore() {
                                   {showCommentLikers[c._id] && c.likes?.length > 0 && dropdownPos[c._id] &&
                                     createPortal(
                                       <div
+                                        className="bg-white dark:bg-neutral-900 border dark:border-gray-700 text-black dark:text-white"
                                         style={{
                                           position: 'fixed',
                                           left: dropdownPos[c._id].left,
@@ -392,8 +393,6 @@ export default function Explore() {
                                           width: '9rem',
                                           maxHeight: '7rem',
                                           overflowY: 'auto',
-                                          background: 'white',
-                                          border: '1px solid #e5e7eb',
                                           borderRadius: '0.375rem',
                                           boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
                                           padding: '0.5rem',
@@ -404,7 +403,7 @@ export default function Explore() {
                                           <Link
                                             key={i}
                                             to={`/profile/${username}`}
-                                            className="block text-gray-600 hover:underline p-1 rounded hover:bg-gray-100"
+                                            className="block text-gray-600 dark:text-gray-300 hover:underline p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
                                             onClick={() => {
                                               setSelectedPost(null);
                                               setCurrentIndex(null);
@@ -439,7 +438,7 @@ export default function Explore() {
                                 const isReplyLiked = r.likes?.includes(localStorage.getItem("username"));
                                 return (
                                   <div key={r._id} className="flex items-start justify-between group">
-                                    <p className="text-sm text-gray-700">
+                                    <p className="text-sm text-gray-700 dark:text-gray-300">
                                       <Link to={`/profile/${r.username}`} className="font-semibold hover:underline" onClick={() => setSelectedPost(null)}>{r.username}</Link>
                                       {r.username === selectedPost.username && (
                                         <span className="ml-1 text-xs text-blue-500 font-semibold">author</span>
@@ -539,6 +538,7 @@ export default function Explore() {
                   {showModalLikers && modalLikers.length > 0 && postDropdownPos &&
                     createPortal(
                       <div
+                        className="bg-white dark:bg-neutral-900 border dark:border-gray-700 text-black dark:text-white"
                         style={{
                           position: 'fixed',
                           left: postDropdownPos.left,
@@ -547,8 +547,6 @@ export default function Explore() {
                           width: '16rem',
                           maxHeight: '15rem',
                           overflowY: 'auto',
-                          background: 'white',
-                          border: '1px solid #e5e7eb',
                           borderRadius: '0.375rem',
                           boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
                           padding: '0.75rem',
@@ -559,7 +557,7 @@ export default function Explore() {
                           <Link
                             key={i}
                             to={`/profile/${user.username}`}
-                            className="flex items-center gap-3 p-1 rounded hover:bg-gray-100"
+                            className="flex items-center gap-3 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
                             onClick={() => {
                               setSelectedPost(null);
                               setCurrentIndex(null);
@@ -605,7 +603,7 @@ export default function Explore() {
                     value={modalReplyInput}
                     onChange={(e) => setModalReplyInput(e.target.value)}
                     placeholder={modalReplyTo ? 'Replying...' : 'Add a comment...'}
-                    className="flex-1 border rounded px-2 py-1"
+                    className="flex-1 border rounded px-2 py-1 bg-white dark:bg-neutral-900 dark:text-white border-gray-300 dark:border-gray-700"
                   />
                   <button
                     onClick={handleModalPostComment}

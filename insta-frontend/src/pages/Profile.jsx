@@ -424,7 +424,19 @@ function handleTouchEnd() {
 
 
   return (
+    <div
+      style={{
+        maxWidth: '430px',
+        margin: '5vh auto 3vh auto',
+        width: '100vw',
+        overflow: 'hidden',
+        height: '91vh',
+        maxHeight: '91vh',
+        background: 'inherit',
+      }}
+    >
     <main className="max-w-4xl min-w-[330px] mx-auto p-4 bg-white dark:bg-black dark:text-white min-h-screen transition-colors duration-300 w-full min-w-0">
+      
       {/* Profile Header */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-8 mb-4">
         <img
@@ -492,7 +504,7 @@ function handleTouchEnd() {
 
       {/* Tabs */}
       <div className="border-t flex justify-center gap-8 mb-4">
-        {["Posts", "Saved", "Tagged"].map((tab) => (
+        {["Posts", "Saved"].map((tab) => (
           <button
             key={tab}
             className={`py-2 px-4 font-semibold ${activeTab === tab ? "border-t-2 border-black" : "text-gray-500"}`}
@@ -510,23 +522,33 @@ function handleTouchEnd() {
             posts.map((post, index) => (
               <div
                 key={index}
-                className="cursor-pointer aspect-square overflow-hidden bg-black flex items-center justify-center relative"
+                className="cursor-pointer aspect-square overflow-hidden bg-black relative"
                 onClick={async () => {
                   const res = await axios.get(`http://localhost:5000/api/posts/single/${post._id}`);
                   setSelectedPost(res.data);
                 }}
               >
-                <Post
-                  postId={post._id}
-                  username={post.username}
-                  collaborators={post.collaborators || []}
-                  profile={`http://localhost:5000${post.profilePic || ''}`}
-                  image={`http://localhost:5000${post.fileUrl}`}
-                  caption={post.caption}
-                  currentUser={username}
-                  initialLikes={post.likes || []}
-                  initialComments={post.comments || []}
-                />
+                {isVideoFile(post.fileUrl) ? (
+                  <>
+                    <video
+                      src={`http://localhost:5000${post.fileUrl}`}
+                      className="w-full h-full object-cover"
+                      style={{ aspectRatio: '1/1' }}
+                      muted
+                      preload="metadata"
+                    />
+                    <div className="absolute top-2 right-2 bg-black bg-opacity-60 rounded-full p-1">
+                      <FaPlay className="w-3 h-3 text-white" />
+                    </div>
+                  </>
+                ) : (
+                  <img
+                    src={`http://localhost:5000${post.fileUrl}`}
+                    alt={`Post ${index + 1}`}
+                    className="w-full h-full object-cover"
+                    style={{ aspectRatio: '1/1' }}
+                  />
+                )}
               </div>
             ))
           ) : (
@@ -544,18 +566,33 @@ function handleTouchEnd() {
             savedPosts.map((post, index) => (
               <div
                 key={index}
-                className="cursor-pointer aspect-square overflow-hidden bg-black"
+                className="cursor-pointer aspect-square overflow-hidden bg-black relative"
                 onClick={async () => {
                   const res = await axios.get(`http://localhost:5000/api/posts/single/${post._id}`);
                   setSelectedPost(res.data);
                 }}
               >
-                <img
-                  src={`http://localhost:5000${post.fileUrl}`}
-                  alt={`Saved Post ${index + 1}`}
-                  className="w-full h-full object-cover"
-                  style={{ aspectRatio: '1/1' }}
-                />
+                {isVideoFile(post.fileUrl) ? (
+                  <>
+                    <video
+                      src={`http://localhost:5000${post.fileUrl}`}
+                      className="w-full h-full object-cover"
+                      style={{ aspectRatio: '1/1' }}
+                      muted
+                      preload="metadata"
+                    />
+                    <div className="absolute top-2 right-2 bg-black bg-opacity-60 rounded-full p-1">
+                      <FaPlay className="w-3 h-3 text-white" />
+                    </div>
+                  </>
+                ) : (
+                  <img
+                    src={`http://localhost:5000${post.fileUrl}`}
+                    alt={`Saved Post ${index + 1}`}
+                    className="w-full h-full object-cover"
+                    style={{ aspectRatio: '1/1' }}
+                  />
+                )}
               </div>
             ))
           ) : (
@@ -1518,14 +1555,14 @@ function handleTouchEnd() {
 
       <footer className="text-xs text-gray-500 text-center space-y-2 mb-10">
         <div className="flex flex-wrap justify-center gap-4">
-          <span>Meta</span><span>About</span><span>Blog</span><span>Jobs</span><span>Help</span>
+          <span>About</span><span>Blog</span><span>Jobs</span><span>Help</span>
           <span>API</span><span>Privacy</span><span>Terms</span><span>Locations</span>
-          <span>Instagram Lite</span><span>Threads</span><span>Contact Uploading & Non-Users</span>
-          <span>Meta Verified</span>
+          <span>Contact Uploading & Non-Users</span>
         </div>
         <div>English</div>
-        <div className="mt-2">© 2025 Instagram from Meta</div>
+        <div className="mt-2">© 2025 Snappix</div>
       </footer>
     </main>
+    </div>
   );
 }

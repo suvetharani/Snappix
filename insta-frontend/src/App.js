@@ -21,6 +21,16 @@ export default function App() {
     return !!localStorage.getItem("username");
   });
 
+  // Initialize dark theme
+  useEffect(() => {
+    const darkMode = localStorage.getItem('darkMode');
+    if (darkMode === 'true') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, []);
+
   useEffect(() => {
     const username = localStorage.getItem("username");
     const loginTime = localStorage.getItem("loginTime");

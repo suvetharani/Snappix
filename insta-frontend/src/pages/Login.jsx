@@ -56,10 +56,10 @@ const handleSignup = async (e) => {
 
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 px-4">
-      <div className="bg-white p-8 w-full max-w-sm border rounded">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 dark:bg-black px-4">
+      <div className="bg-white dark:bg-neutral-900 p-8 w-full max-w-sm border dark:border-gray-700 rounded">
         <h1
-          className="text-5xl font-logo text-center mb-8"
+          className="text-5xl font-logo text-center mb-8 text-black dark:text-white"
           style={{
             fontFamily: "'Grand Hotel', cursive",
           }}
@@ -76,7 +76,7 @@ const handleSignup = async (e) => {
               onChange={(e) =>
                 setLoginData({ ...loginData, username: e.target.value })
               }
-              className="border px-3 py-2 rounded bg-gray-50"
+              className="border px-3 py-2 rounded bg-gray-50 dark:bg-neutral-800 dark:text-white border-gray-300 dark:border-gray-600"
             />
             <input
               type="password"
@@ -85,7 +85,7 @@ const handleSignup = async (e) => {
               onChange={(e) =>
                 setLoginData({ ...loginData, password: e.target.value })
               }
-              className="border px-3 py-2 rounded bg-gray-50"
+              className="border px-3 py-2 rounded bg-gray-50 dark:bg-neutral-800 dark:text-white border-gray-300 dark:border-gray-600"
             />
             <button
               type="submit"
@@ -93,11 +93,6 @@ const handleSignup = async (e) => {
             >
               Log In
             </button>
-            <div className="text-center">
-              <a href="#" className="text-sm text-blue-500 hover:underline">
-                Forgot password?
-              </a>
-            </div>
           </form>
         ) : (
           <form onSubmit={handleSignup} className="flex flex-col gap-3">
@@ -108,7 +103,7 @@ const handleSignup = async (e) => {
               onChange={(e) =>
                 setSignupData({ ...signupData, fullname: e.target.value })
               }
-              className="border px-3 py-2 rounded bg-gray-50"
+              className="border px-3 py-2 rounded bg-gray-50 dark:bg-neutral-800 dark:text-white border-gray-300 dark:border-gray-600"
             />
             <input
               type="text"
@@ -117,7 +112,7 @@ const handleSignup = async (e) => {
               onChange={(e) =>
                 setSignupData({ ...signupData, username: e.target.value })
               }
-              className="border px-3 py-2 rounded bg-gray-50"
+              className="border px-3 py-2 rounded bg-gray-50 dark:bg-neutral-800 dark:text-white border-gray-300 dark:border-gray-600"
             />
             <input
               type="password"
@@ -126,15 +121,15 @@ const handleSignup = async (e) => {
               onChange={(e) =>
                 setSignupData({ ...signupData, password: e.target.value })
               }
-              className="border px-3 py-2 rounded bg-gray-50"
+              className="border px-3 py-2 rounded bg-gray-50 dark:bg-neutral-800 dark:text-white border-gray-300 dark:border-gray-600"
             />
 
-            <p className="text-xs text-gray-500 text-center">
+            <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
               People who use our service may have uploaded your contact
               information to Instagram.{" "}
               <span className="text-blue-500 hover:underline">Learn More</span>
             </p>
-            <p className="text-xs text-gray-500 text-center">
+            <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
               By signing up, you agree to our{" "}
               <span className="text-blue-500 hover:underline">
                 Terms
@@ -160,9 +155,9 @@ const handleSignup = async (e) => {
         )}
       </div>
 
-      <div className="bg-white border p-4 w-full max-w-sm text-center mt-4">
+      <div className="bg-white dark:bg-neutral-900 border dark:border-gray-700 p-4 w-full max-w-sm text-center mt-4">
         {isLogin ? (
-          <p className="text-sm">
+          <p className="text-sm text-black dark:text-white">
             Don't have an account?{" "}
             <span
               onClick={() => setIsLogin(false)}
@@ -172,11 +167,10 @@ const handleSignup = async (e) => {
             </span>
           </p>
         ) : (
-          <p className="text-sm">
+          <p className="text-sm text-black dark:text-white">
             Have an account?{" "}
-            <span
+            <span className="text-blue-500 font-semibold cursor-pointer"
               onClick={() => setIsLogin(true)}
-              className="text-blue-500 font-semibold cursor-pointer"
             >
               Log in
             </span>
