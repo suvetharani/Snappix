@@ -5,6 +5,7 @@ import {
   FaComment,
   FaPaperPlane,
   FaBookmark,
+  FaRegBookmark,
   FaLink,
   FaWhatsapp,
   FaFacebookMessenger,
@@ -22,6 +23,7 @@ import { createPortal } from "react-dom";
 const EMOJIS = ["😊", "😂", "😍", "🔥", "👍"];
 
 export default function Reels() {
+  const currentUsername = localStorage.getItem("username");
   const [reels, setReels] = useState([]);
   const [currentReel, setCurrentReel] = useState(0);
   const [liked, setLiked] = useState(false);
@@ -39,6 +41,14 @@ export default function Reels() {
   const scrollTimeout = useRef();
   const lastScrollY = useRef(0);
   const touchStartY = useRef(null);
+  
+  // Share functionality state
+  const [followings, setFollowings] = useState([]);
+  const [selectedShareUsers, setSelectedShareUsers] = useState([]);
+  
+  // Save functionality state
+  const [saved, setSaved] = useState(false);
+  const [loadingSaved, setLoadingSaved] = useState(true);
 
   useEffect(() => {
     const fetchReels = async () => {
@@ -57,6 +67,21 @@ export default function Reels() {
     fetchReels();
   }, []);
 
+  // Fetch followings when share modal opens
+  useEffect(() => {
+    if (showShare) {
+      const fetchFollowings = async () => {
+        try {
+          const res = await axios.get(`http://localhost:5000/api/profile/${currentUsername}`);
+          setFollowings(res.data.following || []);
+        } catch (err) {
+          setFollowings([]);
+        }
+      };
+      fetchFollowings();
+    }
+  }, [showShare, currentUsername]);
+
   useEffect(() => {
     videoRefs.current.forEach((video, index) => {
       if (video) {
@@ -70,7 +95,6 @@ export default function Reels() {
     setComments(reels[currentReel]?.comments || []);
   }, [currentReel, reels]);
 
-  const currentUsername = localStorage.getItem("username");
   const [likesCount, setLikesCount] = useState(0);
 
   useEffect(() => {
@@ -78,6 +102,38 @@ export default function Reels() {
       setLiked(reels[currentReel]?.likes?.includes(currentUsername));
       setLikesCount(reels[currentReel]?.likes?.length || 0);
     }
+  }, [currentReel, reels, currentUsername]);
+
+  // Save functionality
+  const handleSave = async () => {
+    if (!reels[currentReel]) return;
+    
+    try {
+      const res = await axios.post(`http://localhost:5000/api/posts/${reels[currentReel]._id}/save`, {
+        username: currentUsername,
+      });
+      // Update saved state based on backend response
+      setSaved(res.data.savedPosts.map(id => id.toString()).includes(reels[currentReel]._id));
+    } catch (err) {
+      console.error("Error saving reel:", err);
+    }
+  };
+
+  useEffect(() => {
+    const fetchSaved = async () => {
+      if (!reels[currentReel]) return;
+      
+      try {
+        const res = await axios.get(`http://localhost:5000/api/posts/${currentUsername}/saved`);
+        // If the reel ID is in the savedPosts array, set saved true
+        setSaved(res.data.savedPosts.map(id => id.toString()).includes(reels[currentReel]._id));
+      } catch (err) {
+        setSaved(false);
+      } finally {
+        setLoadingSaved(false);
+      }
+    };
+    fetchSaved();
   }, [currentReel, reels, currentUsername]);
 
   const handleLike = async () => {
@@ -291,7 +347,15 @@ export default function Reels() {
           </button>
           <span>{reels[currentReel]?.shares || 0}</span>
 
-          <FaBookmark />
+          <button onClick={handleSave} disabled={loadingSaved}>
+            {loadingSaved ? (
+              <span className="w-5 h-5 inline-block animate-spin">⏳</span>
+            ) : saved ? (
+              <FaBookmark className="w-5 h-5 cursor-pointer text-gray-600" />
+            ) : (
+              <FaRegBookmark className="w-5 h-5 cursor-pointer text-white" />
+            )}
+          </button>
           <button onClick={() => setShowMenu(!showMenu)}>
             <FaEllipsisH />
           </button>
@@ -520,34 +584,62 @@ export default function Reels() {
                 <FiX className="text-xl" />
               </button>
               <h2 className="text-center font-semibold mb-4">Share</h2>
-              <input
-                type="text"
-                placeholder="Search usernames..."
-                className="border w-full px-2 py-1 mb-4"
-              />
               <div className="grid grid-cols-3 gap-4 mb-4">
-                {reels.map((reel, i) => (
-                  <div key={i} className="flex flex-col items-center">
-                    <img
-                      src={reel.profilePic ? `http://localhost:5000${reel.profilePic}` : "/uploads/default.jpg"}
-                      alt={reel.username}
-                      className="w-12 h-12 rounded-full"
-                    />
-                    <span className="text-xs">{reel.username}</span>
-                  </div>
-                ))}
+                {followings.length === 0 ? (
+                  <div className="text-gray-500 text-sm col-span-3 text-center">You are not following anyone.</div>
+                ) : (
+                  followings.map(f => {
+                    const selected = selectedShareUsers.includes(f.username);
+                    return (
+                      <button
+                        key={f.username}
+                        className={`flex flex-col items-center p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${selected ? 'bg-blue-50 dark:bg-blue-900' : ''}`}
+                        onClick={e => {
+                          e.preventDefault();
+                          setSelectedShareUsers(prev => prev.includes(f.username)
+                            ? prev.filter(u => u !== f.username)
+                            : [...prev, f.username]);
+                        }}
+                      >
+                        <span className="relative">
+                          <img src={f.profilePic ? `http://localhost:5000${f.profilePic}` : '/assets/profiles/profile.jpg'} alt={f.username} className="w-12 h-12 rounded-full object-cover" />
+                          {selected && (
+                            <span className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 border-2 border-white dark:border-neutral-900 rounded-full"></span>
+                          )}
+                        </span>
+                        <span className="text-xs mt-1">{f.username}</span>
+                      </button>
+                    );
+                  })
+                )}
               </div>
-              <div className="flex justify-around text-2xl">
-                <FaLink title="Copy Link" className="cursor-pointer" />
-                <FaWhatsapp title="WhatsApp" className="cursor-pointer" />
-                <FaFacebookMessenger
-                  title="Messenger"
-                  className="cursor-pointer"
-                />
-                <FaFacebookF title="Facebook" className="cursor-pointer" />
-                <FaEnvelope title="Email" className="cursor-pointer" />
-                <FaXTwitter title="X" className="cursor-pointer" />
-              </div>
+              {selectedShareUsers.length > 0 && (
+                <button
+                  className="w-full bg-blue-500 text-white py-2 rounded font-semibold hover:bg-blue-600 transition mb-4"
+                  onClick={async () => {
+                    try {
+                      // Send the reel to each selected user
+                      for (const username of selectedShareUsers) {
+                        await axios.post('http://localhost:5000/api/messages/send', {
+                          sender: currentUsername,
+                          receiver: username,
+                          type: "collab_invite",
+                          postId: reels[currentReel]._id,
+                          fileUrl: reels[currentReel].fileUrl,
+                          caption: reels[currentReel].caption
+                        });
+                      }
+                      
+                      setShowShare(false);
+                      setSelectedShareUsers([]);
+                    } catch (err) {
+                      console.error('Failed to send reel:', err);
+                    }
+                  }}
+                >
+                  Send
+                </button>
+              )}
             </div>
           </div>
         )}

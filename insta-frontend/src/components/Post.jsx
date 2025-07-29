@@ -13,8 +13,14 @@ import {
   FaVolumeUp,
   FaEllipsisV,
   FaTrash,
+  FaLink,
+  FaWhatsapp,
+  FaFacebookMessenger,
+  FaFacebookF,
+  FaEnvelope,
 } from "react-icons/fa";
-import { FiMoreHorizontal } from "react-icons/fi";
+import { FaXTwitter } from "react-icons/fa6";
+import { FiMoreHorizontal, FiX } from "react-icons/fi";
 import { createPortal } from "react-dom";
 import Picker from "@emoji-mart/react";
 import data from "@emoji-mart/data";
@@ -504,49 +510,72 @@ export default function Post({
               <FaRegPaperPlane />
             </button>
             {showShareDropdown && (
-              <div className="absolute z-50 top-10 right-0 bg-white dark:bg-neutral-900 border dark:border-gray-800 rounded shadow w-64 max-h-80 overflow-y-auto p-2">
-                <div className="font-semibold mb-2">Share to...</div>
-                {followings.length === 0 ? (
-                  <div className="text-gray-500 text-sm">You are not following anyone.</div>
-                ) : (
-                  <div>
-                    {followings.map(f => {
-                      const selected = selectedShareUsers.includes(f.username);
-                      return (
-                        <button
-                          key={f.username}
-                          className={`flex items-center w-full gap-3 p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 text-left relative ${selected ? 'bg-blue-50 dark:bg-blue-900' : ''}`}
-                          onClick={e => {
-                            e.preventDefault();
-                            setSelectedShareUsers(prev => prev.includes(f.username)
-                              ? prev.filter(u => u !== f.username)
-                              : [...prev, f.username]);
-                          }}
-                        >
-                          <span className="relative">
-                            <img src={f.profilePic ? `http://localhost:5000${f.profilePic}` : '/assets/profiles/profile.jpg'} alt={f.username} className="w-8 h-8 rounded-full object-cover" />
-                            {selected && (
-                              <span className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 border-2 border-white dark:border-neutral-900 rounded-full"></span>
-                            )}
-                          </span>
-                          <span className="font-semibold">{f.username}</span>
-                        </button>
-                      );
-                    })}
-                    {selectedShareUsers.length > 0 && (
-                      <button
-                        className="mt-2 w-full bg-blue-500 text-white py-2 rounded font-semibold hover:bg-blue-600 transition"
-                        onClick={() => {
-                          console.log('Send to:', selectedShareUsers);
-                          setShowShareDropdown(false);
-                          setSelectedShareUsers([]);
-                        }}
-                      >
-                        Send
-                      </button>
+              <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-80 z-50">
+                <div className="bg-white dark:bg-neutral-900 dark:text-white w-full max-w-sm rounded-lg p-4 relative">
+                  <button
+                    onClick={() => setShowShareDropdown(false)}
+                    className="absolute top-4 right-4"
+                  >
+                    <FiX className="text-xl" />
+                  </button>
+                  <h2 className="text-center font-semibold mb-4">Share</h2>
+                  <div className="grid grid-cols-3 gap-4 mb-4">
+                    {followings.length === 0 ? (
+                      <div className="text-gray-500 text-sm col-span-3 text-center">You are not following anyone.</div>
+                    ) : (
+                      followings.map(f => {
+                        const selected = selectedShareUsers.includes(f.username);
+                        return (
+                          <button
+                            key={f.username}
+                            className={`flex flex-col items-center p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${selected ? 'bg-blue-50 dark:bg-blue-900' : ''}`}
+                            onClick={e => {
+                              e.preventDefault();
+                              setSelectedShareUsers(prev => prev.includes(f.username)
+                                ? prev.filter(u => u !== f.username)
+                                : [...prev, f.username]);
+                            }}
+                          >
+                            <span className="relative">
+                              <img src={f.profilePic ? `http://localhost:5000${f.profilePic}` : '/assets/profiles/profile.jpg'} alt={f.username} className="w-12 h-12 rounded-full object-cover" />
+                              {selected && (
+                                <span className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 border-2 border-white dark:border-neutral-900 rounded-full"></span>
+                              )}
+                            </span>
+                            <span className="text-xs mt-1">{f.username}</span>
+                          </button>
+                        );
+                      })
                     )}
                   </div>
-                )}
+                  {selectedShareUsers.length > 0 && (
+                    <button
+                      className="w-full bg-blue-500 text-white py-2 rounded font-semibold hover:bg-blue-600 transition mb-4"
+                      onClick={async () => {
+                        try {
+                          // Send the post to each selected user
+                          for (const username of selectedShareUsers) {
+                            await axios.post('http://localhost:5000/api/messages/send', {
+                              sender: currentUser,
+                              receiver: username,
+                              type: "collab_invite",
+                              postId: postId,
+                              fileUrl: image.startsWith('http') ? image.replace('http://localhost:5000', '') : image,
+                              caption: caption
+                            });
+                          }
+                          
+                          setShowShareDropdown(false);
+                          setSelectedShareUsers([]);
+                        } catch (err) {
+                          console.error('Failed to send post:', err);
+                        }
+                      }}
+                    >
+                      Send
+                    </button>
+                  )}
+                </div>
               </div>
             )}
           </div>
@@ -599,7 +628,14 @@ export default function Post({
       {/* Post Caption */}
       <div className="px-4 pb-2">
         <p className="font-semibold">
-          {username} <span className="font-normal text-gray-800 dark:text-white">{caption}</span>
+          {[username, ...collaborators].map((u, i, arr) => (
+            <span key={u}>
+              <Link to={`/profile/${u}`} className="font-semibold hover:underline">
+                {u}
+              </Link>
+              {i < arr.length - 1 && ', '}
+            </span>
+          ))} <span className="font-normal text-gray-800 dark:text-white">{caption}</span>
         </p>
       </div>
 
@@ -628,7 +664,7 @@ export default function Post({
                           >
                             {c.username}
                           </Link>
-                          {c.username === username && (
+                          {(c.username === username || collaborators.includes(c.username)) && (
                             <span className="ml-1 text-xs text-gray-500 font-semibold">author</span>
                           )}
                           {`: `}
@@ -835,7 +871,16 @@ export default function Post({
             )}
             {/* Comments & Details Section */}
             <div className={`flex flex-col ${isVideoFile(profileModalPost.fileUrl) ? 'min-w-[180px] max-w-[360px]' : 'min-w-[300px] max-w-[400px]'} p-4`} style={{ height: isVideoFile(profileModalPost.fileUrl) ? 640 : 'auto' }}>
-              <h2 className="font-semibold mb-1">{profileModalPost.username}</h2>
+              <h2 className="font-semibold mb-1">
+                {[profileModalPost.username, ...(profileModalPost.collaborators || [])].map((u, i, arr) => (
+                  <span key={u}>
+                    <Link to={`/profile/${u}`} className="font-semibold hover:underline" onClick={() => setShowProfileModal(false)}>
+                      {u}
+                    </Link>
+                    {i < arr.length - 1 && ', '}
+                  </span>
+                ))}
+              </h2>
               <p className="mb-2">{profileModalPost.caption}</p>
               {/* Scrollable comments section */}
               <div className="flex-1 overflow-y-auto mb-2 border-b pb-1 pr-1">
@@ -848,7 +893,7 @@ export default function Post({
                           <div>
                             <p>
                               <Link to={`/profile/${c.username}`} className="font-semibold hover:underline" onClick={() => setShowProfileModal(false)}>{c.username}</Link>
-                              {c.username === profileModalPost.username && <span className="ml-1 text-xs text-blue-500 font-semibold">author</span>}
+                              {(c.username === profileModalPost.username || (profileModalPost.collaborators || []).includes(c.username)) && <span className="ml-1 text-xs text-blue-500 font-semibold">author</span>}
                               {': '}
                               {renderWithMentions(c.text)}
                             </p>
@@ -884,7 +929,7 @@ export default function Post({
                                 <div key={r._id} className="flex items-start justify-between group">
                                   <p className="text-sm text-gray-700">
                                     <Link to={`/profile/${r.username}`} className="font-semibold hover:underline" onClick={() => setShowProfileModal(false)}>{r.username}</Link>
-                                    {r.username === profileModalPost.username && <span className="ml-1 text-xs text-blue-500 font-semibold">author</span>}
+                                    {(r.username === profileModalPost.username || (profileModalPost.collaborators || []).includes(r.username)) && <span className="ml-1 text-xs text-blue-500 font-semibold">author</span>}
                                     {': '} {renderWithMentions(r.text)}
                                   </p>
                                   <div className="flex items-start space-x-2 ml-2">

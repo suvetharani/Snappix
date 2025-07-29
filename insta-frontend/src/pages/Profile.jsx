@@ -643,7 +643,16 @@ function handleTouchEnd() {
             {isVideoFile(selectedPost.fileUrl) ? (
               <div className="flex flex-col min-w-[180px] max-w-[360px]" style={{ width: 360, height: 640 }}>
                 <div className="flex-1 flex flex-col p-2">
-                  <h2 className="font-semibold mb-1">{selectedPost.username}</h2>
+                  <h2 className="font-semibold mb-1">
+                    {[selectedPost.username, ...(selectedPost.collaborators || [])].map((u, i, arr) => (
+                      <span key={u}>
+                        <Link to={`/profile/${u}`} className="font-semibold hover:underline" onClick={() => setSelectedPost(null)}>
+                          {u}
+                        </Link>
+                        {i < arr.length - 1 && ', '}
+                      </span>
+                    ))}
+                  </h2>
                   <p className="mb-2">{selectedPost.caption}</p>
               {/* Scrollable comments section */}
                   <div className="flex-1 overflow-y-auto mb-2 border-b pb-1 pr-1">
@@ -656,7 +665,7 @@ function handleTouchEnd() {
                           <div>
                             <p>
                                   <Link to={`/profile/${c.username}`} className="font-semibold hover:underline" onClick={() => setSelectedPost(null)}>{c.username}</Link>
-{c.username === selectedPost.username && (
+{(c.username === selectedPost.username || (selectedPost.collaborators || []).includes(c.username)) && (
   <span className="ml-1 text-xs text-blue-500 font-semibold">author</span>
 )}
 {': '}
@@ -770,7 +779,7 @@ function handleTouchEnd() {
                                       <div key={r._id} className="flex items-start justify-between group">
                                         <p className="text-sm text-gray-700">
                                           <Link to={`/profile/${r.username}`} className="font-semibold hover:underline" onClick={() => setSelectedPost(null)}>{r.username}</Link>
-{r.username === selectedPost.username && (
+{(r.username === selectedPost.username || (selectedPost.collaborators || []).includes(r.username)) && (
   <span className="ml-1 text-xs text-blue-500 font-semibold">author</span>
 )}
 {': '}
@@ -953,7 +962,16 @@ function handleTouchEnd() {
               </div>
             ) : (
               <div className="p-4 flex-1 flex flex-col min-w-[300px] max-w-[400px]">
-                <h2 className="font-semibold mb-1">{selectedPost.username}</h2>
+                <h2 className="font-semibold mb-1">
+                  {[selectedPost.username, ...(selectedPost.collaborators || [])].map((u, i, arr) => (
+                    <span key={u}>
+                      <Link to={`/profile/${u}`} className="font-semibold hover:underline" onClick={() => setSelectedPost(null)}>
+                        {u}
+                      </Link>
+                      {i < arr.length - 1 && ', '}
+                    </span>
+                  ))}
+                </h2>
                 <p className="mb-2">{selectedPost.caption}</p>
                 {/* Scrollable comments section */}
                 <div className="flex-1 overflow-y-auto mb-2 max-h-56 border-b pb-1 pr-1">
@@ -966,7 +984,7 @@ function handleTouchEnd() {
                             <div>
                               <p>
                                 <Link to={`/profile/${c.username}`} className="font-semibold hover:underline" onClick={() => setSelectedPost(null)}>{c.username}</Link>
-{c.username === selectedPost.username && (
+{(c.username === selectedPost.username || (selectedPost.collaborators || []).includes(c.username)) && (
   <span className="ml-1 text-xs text-blue-500 font-semibold">author</span>
 )}
 {': '}
@@ -1080,7 +1098,7 @@ function handleTouchEnd() {
                                   <div key={r._id} className="flex items-start justify-between group">
                                     <p className="text-sm text-gray-700">
                                         <Link to={`/profile/${r.username}`} className="font-semibold hover:underline" onClick={() => setSelectedPost(null)}>{r.username}</Link>
-{r.username === selectedPost.username && (
+{(r.username === selectedPost.username || (selectedPost.collaborators || []).includes(r.username)) && (
   <span className="ml-1 text-xs text-blue-500 font-semibold">author</span>
 )}
 {': '}
