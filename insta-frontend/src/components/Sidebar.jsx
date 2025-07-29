@@ -21,6 +21,7 @@ import {
   FiEdit3,
   FiAlertCircle,
   FiX,
+  FiUserPlus,
 } from "react-icons/fi";
 import ReportModal from "./ReportModal";
 import { FaInstagram, FaPlus } from "react-icons/fa";
@@ -133,6 +134,8 @@ const removeRecent = (username) => {
 
   return (
     <>
+    
+    
       {/* Sidebar for tablet and up */}
       {!isOpen && (
         <button
@@ -359,6 +362,10 @@ const removeRecent = (username) => {
         </Link>
         <Link to="/reels" className="flex-1 flex flex-col items-center justify-center py-2">
           <FiFilm className="text-2xl" />
+        </Link>
+        {/* Suggested icon for mobile only */}
+        <Link to="/suggested" className="flex-1 flex flex-col items-center justify-center py-2">
+          <FiUserPlus className="text-2xl" />
         </Link>
         <Link to="/messages" className="flex-1 flex flex-col items-center justify-center py-2 relative">
           <FiMessageCircle className="text-2xl" />
