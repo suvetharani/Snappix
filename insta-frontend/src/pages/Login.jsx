@@ -64,7 +64,7 @@ const handleSignup = async (e) => {
             fontFamily: "'Grand Hotel', cursive",
           }}
         >
-          Instagram
+          Snappix
         </h1>
 
         {isLogin ? (
@@ -126,7 +126,7 @@ const handleSignup = async (e) => {
 
             <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
               People who use our service may have uploaded your contact
-              information to Instagram.{" "}
+              information to Snappix.{" "}
               <span className="text-blue-500 hover:underline">Learn More</span>
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400 text-center">

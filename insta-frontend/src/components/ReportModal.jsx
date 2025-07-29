@@ -52,7 +52,7 @@ export default function ReportModal({ isOpen, onClose }) {
 
         {/* Footer Info */}
         <p className="text-xs text-gray-500 dark:text-gray-400">
-          Your Instagram username and browser information will be automatically included in your report.
+          Your Snappix username and browser information will be automatically included in your report.
         </p>
       </div>
     </div>

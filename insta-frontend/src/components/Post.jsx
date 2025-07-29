@@ -26,6 +26,7 @@ import Picker from "@emoji-mart/react";
 import data from "@emoji-mart/data";
 import { Bookmark, BookmarkCheck } from "lucide-react";
 import Profile from "../pages/Profile";
+import { BsStar, BsStarFill, BsShare } from "react-icons/bs";
 
 // Helper to check if a file is a video
 function isVideoFile(fileUrl) {
@@ -493,7 +494,7 @@ export default function Post({
       <div className="flex justify-between items-center px-4 py-2">
         <div className="flex gap-4 text-2xl items-center">
           <button onClick={handleLike} className="hover:scale-110">
-            {liked ? <FaHeart className="text-red-500" /> : <FaRegHeart />}
+            {liked ? <BsStarFill className="text-yellow-400" /> : <BsStar />}
           </button>
           <button
             onClick={() => {
@@ -515,7 +516,7 @@ export default function Post({
               title="Share"
               onClick={() => setShowShareDropdown((v) => !v)}
             >
-              <FaRegPaperPlane />
+              <BsShare />
             </button>
             {showShareDropdown && (
               <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-80 z-50">
@@ -1110,9 +1111,9 @@ export default function Post({
                             <div className="flex flex-col items-center">
                               <button onClick={() => handleCommentLike(c._id)}>
                                 {isLiked ? (
-                                  <FaHeart className="text-red-500 text-sm" />
+                                  <BsStarFill className="text-yellow-400 text-sm" />
                                 ) : (
-                                  <FaRegHeart className="text-sm" />
+                                  <BsStar className="text-sm" />
                                 )}
                               </button>
                               <span 
@@ -1183,9 +1184,9 @@ export default function Post({
                                     <div className="flex flex-col items-center">
                                       <button onClick={() => handleReplyLike(c._id, r._id)}>
                                         {isReplyLiked ? (
-                                          <FaHeart className="text-red-500 text-sm" />
+                                          <BsStarFill className="text-yellow-400 text-sm" />
                                         ) : (
-                                          <FaRegHeart className="text-sm" />
+                                          <BsStar className="text-sm" />
                                         )}
                                       </button>
                                       <span 

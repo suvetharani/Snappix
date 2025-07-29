@@ -85,7 +85,7 @@ profile: post.profilePic
     <div className="w-full max-w-5xl min-w-[330px] mx-auto pt-8 bg-white dark:bg-black dark:text-white min-h-screen transition-colors duration-300">
       {/* Top bar for mobile */}
       <div className="flex items-center justify-between px-4 py-2 border-b dark:border-gray-800 tablet:hidden fixed top-0 left-0 w-full bg-white dark:bg-black z-40">
-        <span className="font-logo text-2xl">Instagram</span>
+        <span className="font-logo text-2xl">Snappix</span>
         <div className="flex gap-4">
           <button onClick={() => setShowSearch((v) => !v)} className="text-2xl">
             <FiSearch />

@@ -109,7 +109,7 @@ export default function Saved() {
             </div>
           )}
           <span className="mx-2">•</span>
-          <span>© 2025 Instagram</span>
+          <span>© 2025 Snappix</span>
         </div>
       </footer>
     </div>

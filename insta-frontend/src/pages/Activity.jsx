@@ -256,7 +256,6 @@ export default function YourActivity() {
             "Privacy",
             "Terms",
             "Locations",
-            "Instagram Lite",
             "Threads",
             "Contact Uploading & Non-Users",
             "Meta Verified",

@@ -4,25 +4,19 @@ import Layout from "./Layout";
 import SearchBox from "./SearchBox";
 import axios from "axios";
 import {
-  FiHome,
-  FiSearch,
-  FiCompass,
-  FiFilm,
-  FiMessageCircle,
-  FiBell,
-  FiUser,
-  FiMenu,
-  FiSettings,
-  FiClock,
-  FiBookmark,
-  FiSun,
-  FiMoon,
-  FiLogOut,
-  FiEdit3,
-  FiAlertCircle,
-  FiX,
-  FiUserPlus,
-} from "react-icons/fi";
+  HiOutlineHome,
+  HiOutlineMagnifyingGlass,
+  HiOutlineGlobeAlt,
+  HiOutlineChatBubbleLeftRight,
+  HiOutlinePlusCircle,
+  HiOutlineUserCircle,
+  HiOutlineUserPlus,
+  HiOutlineMoon,
+  HiOutlineArrowRightOnRectangle,
+  HiOutlineBars3,
+  HiOutlineXMark
+} from "react-icons/hi2";
+import { BsCameraReels } from "react-icons/bs";
 import ReportModal from "./ReportModal";
 import { FaInstagram, FaPlus } from "react-icons/fa";
 import { UnreadContext } from "../context/UnreadContext";
@@ -142,7 +136,7 @@ const removeRecent = (username) => {
           className="fixed top-4 left-4 z-50 bg-white dark:bg-black dark:text-white rounded p-2 shadow border dark:border-gray-800 tablet:block hidden"
           onClick={() => setIsOpen(true)}
         >
-          <FiMenu className="text-2xl" />
+          <HiOutlineBars3 className="text-2xl" />
         </button>
       )}
       <aside
@@ -158,7 +152,7 @@ const removeRecent = (username) => {
                   (!isOpen || showSearch) && "hidden"
                 }`}
               >
-                Instagram
+                Snappix
               </h1>
               {showSearch && (
                 <FaInstagram className="text-2xl" />
@@ -168,7 +162,7 @@ const removeRecent = (username) => {
               onClick={() => setIsOpen(!isOpen)}
               className="text-xl p-2 hover:bg-gray-100 rounded"
             >
-              {isOpen ? <FiX /> : <FiMenu />}
+              {isOpen ? <HiOutlineXMark /> : <HiOutlineBars3 />}
             </button>
           </div>
           <nav className={`flex flex-col gap-4 ${isOpen ? "items-start" : "items-center"}`}>
@@ -177,7 +171,7 @@ const removeRecent = (username) => {
               to="/"
               className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 px-2 py-2 rounded w-full"
             >
-              <FiHome /> {isOpen && !showSearch && "Home"}
+              <HiOutlineHome className="text-2xl" /> {isOpen && !showSearch && "Home"}
             </Link>
 
             <button
@@ -186,30 +180,30 @@ const removeRecent = (username) => {
                 setShowMore(false);
                 setShowCreate(false);
               }}
-              className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 text-left px-2 py-2 rounded w-full"
+              className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 px-2 py-2 rounded w-full"
             >
-              <FiSearch /> {isOpen && !showSearch && "Search"}
+              <HiOutlineMagnifyingGlass className="text-2xl" /> {isOpen && !showSearch && "Search"}
             </button>
 
             <Link
               to="/explore"
               className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 px-2 py-2 rounded w-full"
             >
-              <FiCompass /> {isOpen && !showSearch && "Explore"}
+              <HiOutlineGlobeAlt className="text-2xl" /> {isOpen && !showSearch && "Explore"}
             </Link>
 
             <Link
               to="/reels"
               className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 px-2 py-2 rounded w-full"
             >
-              <FiFilm /> {isOpen && !showSearch && "Reels"}
+              <BsCameraReels className="text-2xl" /> {isOpen && !showSearch && "Reels"}
             </Link>
 
             <Link
               to="/messages"
               className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 px-2 py-2 rounded w-full relative"
             >
-              <FiMessageCircle /> {isOpen && !showSearch && "Messages"}
+              <HiOutlineChatBubbleLeftRight className="text-2xl" /> {isOpen && !showSearch && "Messages"}
               {unreadUserCount > 0 && (
                 <span className="absolute left-5 -top-1 bg-red-500 text-white text-xs font-bold rounded-full px-1.5 py-0.5 min-w-[18px] text-center">
                   {unreadUserCount}
@@ -225,46 +219,33 @@ const removeRecent = (username) => {
                 setShowMore(false);
                 setShowSearch(false);
               }}
-              className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 text-left px-2 py-2 rounded w-full tablet:block hidden"
+              className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 px-2 py-2 rounded w-full relative"
             >
-              <FiEdit3 /> {isOpen && !showSearch && "Create"}
+              <HiOutlinePlusCircle className="text-2xl" /> {isOpen && !showSearch && "Create"}
             </button>
 
             <Link
               to={`/profile/${localStorage.getItem("username")}`}
               className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 px-2 py-2 rounded w-full"
             >
-              {currentUserProfile && currentUserProfile.profilePic ? (
-                <img
-                  src={`http://localhost:5000${currentUserProfile.profilePic}`}
-                  alt={currentUserProfile.username}
-                  className="w-7 h-7 rounded-full object-cover border"
-                />
-              ) : (
-                <img
-                  src={`https://ui-avatars.com/api/?name=${localStorage.getItem("username") || "U"}&background=random`}
-                  alt="profile"
-                  className="w-7 h-7 rounded-full object-cover border"
-                />
-              )}
-              {isOpen && !showSearch && "Profile"}
+              <HiOutlineUserCircle className="text-2xl" /> {isOpen && !showSearch && "Profile"}
             </Link>
 
 
             {/* Switch Appearance */}
             <button
               onClick={toggleDarkMode}
-              className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 text-left px-2 py-2 rounded w-full"
+              className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 px-2 py-2 rounded w-full"
             >
-              {darkMode ? <FiMoon /> : <FiSun />} {isOpen && !showSearch && "Switch Appearance"}
+              <HiOutlineMoon className="text-2xl" /> {isOpen && !showSearch && "Switch Appearance"}
             </button>
 
             {/* Log Out */}
             <button
               onClick={handleLogout}
-              className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 text-left px-2 py-2 rounded w-full text-red-500"
+              className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 px-2 py-2 rounded w-full text-red-500"
             >
-              <FiLogOut /> {isOpen && !showSearch && "Log Out"}
+              <HiOutlineArrowRightOnRectangle className="text-2xl" /> {isOpen && !showSearch && "Log Out"}
             </button>
           </nav>
 
@@ -355,20 +336,20 @@ const removeRecent = (username) => {
       {/* Bottom nav for mobile/tablet (<= 750px) */}
       <nav className="fixed bottom-0 left-0 w-full flex justify-between items-center bg-white dark:bg-black border-t dark:border-gray-800 px-2 py-1 z-50 tablet:hidden">
         <Link to="/home" className="flex-1 flex flex-col items-center justify-center py-2">
-          <FiHome className="text-2xl" />
+          <HiOutlineHome className="text-2xl" />
         </Link>
         <Link to="/explore" className="flex-1 flex flex-col items-center justify-center py-2">
-          <FiCompass className="text-2xl" />
+          <HiOutlineGlobeAlt className="text-2xl" />
         </Link>
         <Link to="/reels" className="flex-1 flex flex-col items-center justify-center py-2">
-          <FiFilm className="text-2xl" />
+          <BsCameraReels className="text-2xl" />
         </Link>
         {/* Suggested icon for mobile only */}
         <Link to="/suggested" className="flex-1 flex flex-col items-center justify-center py-2">
-          <FiUserPlus className="text-2xl" />
+          <HiOutlineUserPlus className="text-2xl" />
         </Link>
         <Link to="/messages" className="flex-1 flex flex-col items-center justify-center py-2 relative">
-          <FiMessageCircle className="text-2xl" />
+          <HiOutlineChatBubbleLeftRight className="text-2xl" />
           {unreadUserCount > 0 && (
             <span className="absolute top-1 right-2 bg-red-500 text-white text-xs font-bold rounded-full px-1.5 py-0.5 min-w-[18px] text-center">
               {unreadUserCount}
@@ -376,34 +357,26 @@ const removeRecent = (username) => {
           )}
         </Link>
         <Link to={`/profile/${localStorage.getItem("username")}`} className="flex-1 flex flex-col items-center justify-center py-2">
-          {currentUserProfile && currentUserProfile.profilePic ? (
-            <img
-              src={`http://localhost:5000${currentUserProfile.profilePic}`}
-              alt={currentUserProfile.username}
-              className="w-7 h-7 rounded-full object-cover border"
-            />
-          ) : (
-            <FiUser className="text-2xl" />
-          )}
+          <HiOutlineUserCircle className="text-2xl" />
         </Link>
       </nav>
 
       {/* Mobile top bar with search and appearance toggle */}
       <div className="fixed top-0 left-0 w-full bg-white dark:bg-black border-b dark:border-gray-800 px-4 py-2 z-50 tablet:hidden">
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-semibold text-black dark:text-white">Instagram</h1>
+          <h1 className="text-xl font-semibold text-black dark:text-white">Snappix</h1>
           <div className="flex items-center gap-3">
             <button
               onClick={toggleDarkMode}
               className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"
             >
-              {darkMode ? <FiMoon className="text-xl" /> : <FiSun className="text-xl" />}
+              <HiOutlineMoon className="text-xl" />
             </button>
             <button
               onClick={() => setShowSearch(!showSearch)}
               className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"
             >
-              <FiSearch className="text-xl" />
+              <HiOutlineMagnifyingGlass className="text-xl" />
             </button>
           </div>
         </div>
@@ -422,7 +395,7 @@ const removeRecent = (username) => {
             <span
               className="absolute right-4 top-2.5 text-gray-500"
             >
-              <FiSearch />
+              <HiOutlineMagnifyingGlass />
             </span>
           </div>
           <div className="flex-grow overflow-y-auto border-t dark:border-gray-800">
@@ -507,7 +480,7 @@ const removeRecent = (username) => {
                         onClick={() => removeRecent(item.username)}
                         className="text-gray-400 hover:text-gray-900 dark:hover:text-white"
                       >
-                        <FiX />
+                        <HiOutlineXMark />
                       </button>
                     </li>
                   ))}
