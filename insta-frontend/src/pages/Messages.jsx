@@ -350,7 +350,7 @@ export default function Messages() {
             </div>
 
             {/* Input */}
-              <div className="flex items-center border-t p-4 relative dark:border-gray-800 bg-white dark:bg-black tablet:static tablet:bottom-auto fixed bottom-0 left-0 right-0 z-40 tablet:z-auto w-full tablet:w-auto" style={{maxWidth: '100vw'}}>
+              <div className="flex items-center border-t p-4 dark:border-gray-800 bg-white dark:bg-black tablet:static tablet:bottom-auto fixed bottom-0 left-0 right-0 z-40 tablet:z-auto w-full tablet:w-auto" style={{maxWidth: '100vw'}}>
               <button
                 className="text-2xl mr-2"
                 onClick={() => setShowEmoji(!showEmoji)}
@@ -551,7 +551,7 @@ export default function Messages() {
               </div>
 
               {/* Input */}
-                <div className="flex items-center border-t p-4 relative dark:border-gray-800 bg-white dark:bg-black tablet:static tablet:bottom-auto fixed bottom-0 left-0 right-0 z-40 tablet:z-auto w-full tablet:w-auto" style={{maxWidth: '100vw'}}>
+                <div className="flex items-center border-t p-4 dark:border-gray-800 bg-white dark:bg-black tablet:static tablet:bottom-auto fixed bottom-0 left-0 right-0 z-40 tablet:z-auto w-full tablet:w-auto" style={{maxWidth: '100vw'}}>
                 <button
                   className="text-2xl mr-2"
                   onClick={() => setShowEmoji(!showEmoji)}
