@@ -418,17 +418,30 @@ export default function Post({
     return () => document.removeEventListener('mousedown', handleClick);
   }, [showShareDropdown]);
 
+  // Close likes dropdown when clicking outside
+  useEffect(() => {
+    if (!showPostLikers) return;
+    function handleClickOutside(e) {
+      const dropdown = document.getElementById(`post-likers-dropdown-${postId}`);
+      if (dropdown && !dropdown.contains(e.target)) {
+        setShowPostLikers(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showPostLikers, postId]);
+
   return (
-    <div className="bg-white dark:bg-black dark:border-gray-800 dark:text-white border rounded-md shadow mb-6 w-full max-w-md min-w-[330px] mx-auto relative">
+    <div className="bg-white dark:bg-black dark:border-gray-800 dark:text-white border rounded-2xl shadow relative w-full">
       {/* Post Header */}
-      <div className="flex justify-between items-center px-4 py-2">
+      <div className="flex justify-between items-center px-2 md:px-4 py-2">
         <div className="flex items-center">
           <img
             src={profile}
             alt={username}
-            className="w-10 h-10 rounded-full mr-3 object-cover"
+            className="w-8 h-8 md:w-10 md:h-10 rounded-full mr-2 md:mr-3 object-cover"
           />
-          <span>
+          <span className="text-sm md:text-base">
             {[username, ...collaborators].map((u, i, arr) => (
               <span key={u}>
                 <Link to={`/profile/${u}`} className="font-semibold hover:underline">
@@ -457,8 +470,13 @@ export default function Post({
         )}
       </div>
 
+      {/* Post Caption (moved above image/video) */}
+      <div className="px-2 md:px-4 pt-2 pb-1">
+        <p className="font-normal text-gray-800 dark:text-white text-sm md:text-base">{caption}</p>
+      </div>
+
       {/* Post Media (1:1) */}
-      <div className="relative aspect-square w-full bg-black flex items-center justify-center cursor-pointer"
+      <div className="relative aspect-square w-full bg-black flex items-center justify-center cursor-pointer rounded-2xl"
         onClick={() => {
           if (isVideoFile(image)) setShowVideoModal(true);
         }}
@@ -471,7 +489,7 @@ export default function Post({
         {isVideoFile(image) ? (
           <video
             src={image}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover rounded-2xl"
             style={{ aspectRatio: '1/1' }}
             muted
             autoPlay
@@ -482,18 +500,23 @@ export default function Post({
           <img
             src={image}
             alt="post"
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover rounded-2xl"
             style={{ aspectRatio: '1/1' }}
           />
         )}
       </div>
 
-      {/* Post Actions */}
-      <div className="flex justify-between items-center px-4 py-2">
-        <div className="flex gap-4 text-2xl items-center">
-          <button onClick={handleLike} className="hover:scale-110">
-            {liked ? <BsStarFill className="text-yellow-400" /> : <BsStar />}
-          </button>
+      {/* Post Actions (centered, spaced, likes count below) */}
+      <div className="flex flex-col items-center px-2 md:px-4 py-2">
+        <div className="flex gap-6 md:gap-10 text-xl md:text-2xl items-center justify-center mb-1 relative">
+          <span className="flex items-center">
+            <button onClick={handleLike} className="hover:scale-110">
+              {liked ? <BsStarFill className="text-yellow-400" /> : <BsStar />}
+            </button>
+            <span className="text-sm font-semibold cursor-pointer hover:underline select-none ml-0" onClick={handleShowPostLikers}>
+              {likesCount}
+            </span>
+          </span>
           <button
             onClick={() => {
               // On mobile, show comments only. On desktop, show full modal
@@ -507,7 +530,6 @@ export default function Post({
           >
             <FaRegComment />
           </button>
-          
           <div className="relative" ref={shareBtnRef}>
             <button
               className="hover:scale-110 cursor-pointer"
@@ -527,36 +549,36 @@ export default function Post({
                   </button>
                   <h2 className="text-center font-semibold mb-4">Share</h2>
                   <div className="grid grid-cols-3 gap-4 mb-4">
-                    {followings.length === 0 ? (
+                {followings.length === 0 ? (
                       <div className="text-gray-500 text-sm col-span-3 text-center">You are not following anyone.</div>
-                    ) : (
+                ) : (
                       followings.map(f => {
-                        const selected = selectedShareUsers.includes(f.username);
-                        return (
-                          <button
-                            key={f.username}
-                            className={`flex flex-col items-center p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${selected ? 'bg-blue-50 dark:bg-blue-900' : ''}`}
-                            onClick={e => {
-                              e.preventDefault();
-                              setSelectedShareUsers(prev => prev.includes(f.username)
-                                ? prev.filter(u => u !== f.username)
-                                : [...prev, f.username]);
-                            }}
-                          >
-                            <span className="relative">
+                      const selected = selectedShareUsers.includes(f.username);
+                      return (
+                        <button
+                          key={f.username}
+                            className={`flex flex-col items-center p-2 rounded hover:bg-gray-100 dark:hover:bg-neutral-800 ${selected ? 'bg-blue-50 dark:bg-blue-900' : ''}`}
+                          onClick={e => {
+                            e.preventDefault();
+                            setSelectedShareUsers(prev => prev.includes(f.username)
+                              ? prev.filter(u => u !== f.username)
+                              : [...prev, f.username]);
+                          }}
+                        >
+                          <span className="relative">
                               <img src={f.profilePic ? `http://localhost:5000${f.profilePic}` : '/assets/profiles/profile.jpg'} alt={f.username} className="w-12 h-12 rounded-full object-cover" />
-                              {selected && (
-                                <span className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 border-2 border-white dark:border-neutral-900 rounded-full"></span>
-                              )}
-                            </span>
+                            {selected && (
+                              <span className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 border-2 border-white dark:border-neutral-900 rounded-full"></span>
+                            )}
+                          </span>
                             <span className="text-xs mt-1">{f.username}</span>
-                          </button>
-                        );
+                        </button>
+                      );
                       })
                     )}
                   </div>
-                  {selectedShareUsers.length > 0 && (
-                    <button
+                    {selectedShareUsers.length > 0 && (
+                      <button
                       className="w-full bg-blue-500 text-white py-2 rounded font-semibold hover:bg-blue-600 transition mb-4"
                       onClick={async () => {
                         try {
@@ -577,16 +599,15 @@ export default function Post({
                         } catch (err) {
                           console.error('Failed to send post:', err);
                         }
-                      }}
-                    >
-                      Send
-                    </button>
-                  )}
-                </div>
+                        }}
+                      >
+                        Send
+                      </button>
+                    )}
+                  </div>
               </div>
             )}
           </div>
-        </div>
           <button onClick={handleSave} disabled={loadingSaved}>
             {loadingSaved ? (
               <span className="w-5 h-5 inline-block animate-spin">⏳</span>
@@ -596,55 +617,29 @@ export default function Post({
               <FaRegBookmark className="w-5 h-5 cursor-pointer text-gray-700 dark:text-white" />
             )}
           </button>
-          
+          {/* Dropdown showing usernames */}
+          {showPostLikers && postLikers.length > 0 && (
+            <div id={`post-likers-dropdown-${postId}`} className="absolute left-1/2 transform -translate-x-1/2 mt-2 bg-white dark:bg-neutral-900 border dark:border-gray-800 shadow-md rounded-md text-sm w-64 max-h-60 overflow-y-auto p-3 z-50">
+              <p className="font-semibold mb-2">Liked by:</p>
+              {postLikers.map((user, i) => (
+                <Link
+                  key={i}
+                  to={`/profile/${user.username}`}
+                  className="flex items-center gap-3 p-1 rounded hover:bg-gray-100 dark:hover:bg-neutral-800"
+                >
+                  <img
+                    src={user.profilePic}
+                    alt={user.username}
+                    className="w-8 h-8 rounded-full object-cover"
+                  />
+                  <span className="text-blue-500 hover:underline">{user.username}</span>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Likes Count */}
-
-      <div className="px-4 relative">
-        <p
-          className="font-semibold mb-1 cursor-pointer hover:underline"
-          onClick={handleShowPostLikers}
-        >
-          {likesCount} likes
-        </p>
-
-        {/* Dropdown showing usernames */}
-        {showPostLikers && postLikers.length > 0 && (
-          <div className="absolute bg-white dark:bg-neutral-900 border dark:border-gray-800 shadow-md rounded-md text-sm w-64 max-h-60 overflow-y-auto p-3 z-50">
-            <p className="font-semibold mb-2">Liked by:</p>
-            {postLikers.map((user, i) => (
-              <Link
-                 key={i}
-                 to={`/profile/${user.username}`}
-                 className="flex items-center gap-3 p-1 rounded hover:bg-gray-100"
-               >
-                 <img
-                   src={user.profilePic}
-                   alt={user.username}
-                   className="w-8 h-8 rounded-full object-cover"
-                 />
-                 <span className="text-blue-500 hover:underline">{user.username}</span>
-               </Link>
-             ))}
-           </div>
-         )}
-      </div>
-
-
-      {/* Post Caption */}
-      <div className="px-4 pb-2">
-        <p className="font-semibold">
-          {[username, ...collaborators].map((u, i, arr) => (
-            <span key={u}>
-              <Link to={`/profile/${u}`} className="font-semibold hover:underline">
-                {u}
-              </Link>
-              {i < arr.length - 1 && ', '}
-            </span>
-          ))} <span className="font-normal text-gray-800 dark:text-white">{caption}</span>
-        </p>
-      </div>
 
       {/* Dropdown Comments (OLD) - This can be removed or kept as a fallback */}
       {showComments && (

@@ -82,7 +82,7 @@ profile: post.profilePic
   }, [currentUsername]);
 
   return (
-    <div className="w-full max-w-5xl min-w-[330px] mx-auto pt-8 bg-white dark:bg-black dark:text-white min-h-screen transition-colors duration-300">
+    <div className="w-full max-w-5xl min-w-[330px] mx-auto pt-8 pb-20 bg-white dark:bg-black dark:text-white min-h-screen transition-colors duration-300">
       {/* Top bar for mobile */}
       <div className="flex items-center justify-between px-4 py-2 border-b dark:border-gray-800 tablet:hidden fixed top-0 left-0 w-full bg-white dark:bg-black z-40">
         <span className="font-logo text-2xl">Snappix</span>
@@ -129,20 +129,22 @@ profile: post.profilePic
         <div className="flex-1 min-w-0">
           {/* Stories removed as per request */}
           {posts.length > 0 ? (
-            posts.map((post) => (
-              <Post
-                key={post._id}
-                postId={post._id}
-                username={post.username}
-                collaborators={post.collaborators || []}
-                profile={`http://localhost:5000${post.profile}`}
-                image={`http://localhost:5000${post.fileUrl}`}
-                caption={post.caption}
-                currentUser={currentUsername}
-                initialLikes={post.likes || []}
-                initialComments={post.comments || []}
-              />
-            ))
+            <div className="grid grid-cols-2 gap-2 md:gap-4">
+              {posts.map((post) => (
+                <Post
+                  key={post._id}
+                  postId={post._id}
+                  username={post.username}
+                  collaborators={post.collaborators || []}
+                  profile={`http://localhost:5000${post.profile}`}
+                  image={`http://localhost:5000${post.fileUrl}`}
+                  caption={post.caption}
+                  currentUser={currentUsername}
+                  initialLikes={post.likes || []}
+                  initialComments={post.comments || []}
+                />
+              ))}
+            </div>
           ) : (
             <p className="text-center text-gray-500">No posts found</p>
           )}

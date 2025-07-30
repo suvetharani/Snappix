@@ -36,6 +36,10 @@ export default function Sidebar({ isOpen, setIsOpen, onReportOpen }) {
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
 
+  // Add state for bottom nav visibility
+  const [showBottomNav, setShowBottomNav] = useState(false);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
   const navigate = useNavigate();
   const [recents, setRecents] = useState(() => {
     const stored = localStorage.getItem("recents");
@@ -126,6 +130,66 @@ const removeRecent = (username) => {
     window.location.href = "/login";
   };
 
+  // Add scroll detection for bottom nav
+  useEffect(() => {
+    let scrollTimeout;
+    
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      const windowHeight = window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
+      
+      // Add a small threshold to prevent flickering
+      const scrollThreshold = 10;
+      const isScrollingUp = currentScrollY < lastScrollY - scrollThreshold;
+      const isNearBottom = currentScrollY + windowHeight >= documentHeight - 100;
+      
+      // Clear existing timeout
+      if (scrollTimeout) {
+        clearTimeout(scrollTimeout);
+      }
+      
+      if (isScrollingUp || isNearBottom) {
+        setShowBottomNav(true);
+      } else {
+        // Add a small delay before hiding to prevent flickering
+        scrollTimeout = setTimeout(() => {
+          setShowBottomNav(false);
+        }, 150);
+      }
+      
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    
+    // Show bottom nav initially if page is short or at top
+    const initialCheck = () => {
+      const windowHeight = window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
+      const currentScrollY = window.scrollY;
+      
+      // Show if page is short, at the top, or if there's not much content
+      if (documentHeight <= windowHeight + 100 || currentScrollY < 50) {
+        setShowBottomNav(true);
+      }
+    };
+    
+    // Check on mount and after a short delay to handle dynamic content
+    initialCheck();
+    const initialTimeout = setTimeout(initialCheck, 500);
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (scrollTimeout) {
+        clearTimeout(scrollTimeout);
+      }
+      if (initialTimeout) {
+        clearTimeout(initialTimeout);
+      }
+    };
+  }, [lastScrollY]);
+
   return (
     <>
     
@@ -146,7 +210,12 @@ const removeRecent = (username) => {
       >
         <div className="relative flex flex-col h-full">
           <div className="flex items-center justify-between mb-10 px-2">
-            <Link to="/">
+            <Link to="/" className="flex items-center gap-3">
+              <img 
+                src="/logo192.png" 
+                alt="Snappix Logo" 
+                className={`w-8 h-8 rounded-lg ${(!isOpen || showSearch) && "hidden"}`}
+              />
               <h1
                 className={`text-3xl font-normal font-logo ${
                   (!isOpen || showSearch) && "hidden"
@@ -334,7 +403,9 @@ const removeRecent = (username) => {
       </aside>
 
       {/* Bottom nav for mobile/tablet (<= 750px) */}
-      <nav className="fixed bottom-0 left-0 w-full flex justify-between items-center bg-white dark:bg-black border-t dark:border-gray-800 px-2 py-1 z-50 tablet:hidden">
+      <nav className={`fixed bottom-0 left-0 w-full flex justify-between items-center bg-white dark:bg-black border-t dark:border-gray-800 px-2 py-1 z-50 tablet:hidden transition-transform duration-300 ${
+        showBottomNav ? 'translate-y-0' : 'translate-y-full'
+      }`}>
         <Link to="/home" className="flex-1 flex flex-col items-center justify-center py-2">
           <HiOutlineHome className="text-2xl" />
         </Link>
@@ -364,7 +435,14 @@ const removeRecent = (username) => {
       {/* Mobile top bar with search and appearance toggle */}
       <div className="fixed top-0 left-0 w-full bg-white dark:bg-black border-b dark:border-gray-800 px-4 py-2 z-50 tablet:hidden">
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-semibold text-black dark:text-white">Snappix</h1>
+          <div className="flex items-center gap-2">
+            <img 
+              src="/logo192.png" 
+              alt="Snappix Logo" 
+              className="w-6 h-6 rounded-lg"
+            />
+            <h1 className="text-xl font-semibold text-black dark:text-white">Snappix</h1>
+          </div>
           <div className="flex items-center gap-3">
             <button
               onClick={toggleDarkMode}
@@ -382,8 +460,17 @@ const removeRecent = (username) => {
         </div>
       </div>
       {showSearch && isOpen && (
-        <div className="fixed top-0 left-20 h-screen w-[397px] bg-white dark:bg-neutral-900 dark:text-white border-x dark:border-gray-800 rounded-r-2xl shadow-lg z-40 p-4 flex flex-col transition-all duration-300">
-          <h2 className="text-2xl font-bold mt-4 mb-6 px-2">Search</h2>
+        <div className="fixed top-0 left-0 h-screen w-full bg-white dark:bg-neutral-900 dark:text-white shadow-lg z-40 p-4 flex flex-col transition-all duration-300 tablet:left-20 tablet:w-[397px] tablet:border-x tablet:dark:border-gray-800 tablet:rounded-r-2xl">
+          <div className="flex items-center justify-between mb-6 tablet:hidden">
+            <h2 className="text-2xl font-bold">Search</h2>
+            <button
+              onClick={() => setShowSearch(false)}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"
+            >
+              <HiOutlineXMark className="text-2xl" />
+            </button>
+          </div>
+          <h2 className="text-2xl font-bold mt-4 mb-6 px-2 hidden tablet:block">Search</h2>
           <div className="relative mb-6 px-2">
             <input
               type="text"

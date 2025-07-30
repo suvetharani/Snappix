@@ -227,7 +227,7 @@ export default function Reels() {
   }
 
   return (
-    <div className="flex justify-center items-center bg-gray-100 dark:bg-black dark:text-white h-screen w-screen overflow-hidden transition-colors duration-300">
+    <div className="flex justify-center items-center bg-gray-100 dark:bg-black dark:text-white h-screen w-screen overflow-hidden transition-colors duration-300 pb-20">
       <div
         className="relative bg-black rounded-xl overflow-hidden flex items-center justify-center"
         style={{

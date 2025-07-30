@@ -23,21 +23,23 @@ export default function Feed() {
   }, []);
 
   return (
-    <main className="w-full max-w-xl">
+    <main className="w-full max-w-6xl mx-auto p-4">
       <Stories /> {/* If you want stories */}
-      {posts.map((post) => (
-        <Post
-          key={post._id}
-          postId={post._id}
-          username={post.username}
-          profile={post.profile}
-          image={post.image}
-          caption={post.caption}
-          initialLikes={post.likes}
-          initialComments={post.comments}
-          currentUser={currentUser}
-        />
-      ))}
+      <div className="grid grid-cols-2 gap-2 md:gap-4">
+        {posts.map((post) => (
+          <Post
+            key={post._id}
+            postId={post._id}
+            username={post.username}
+            profile={post.profile}
+            image={post.image}
+            caption={post.caption}
+            initialLikes={post.likes}
+            initialComments={post.comments}
+            currentUser={currentUser}
+          />
+        ))}
+      </div>
     </main>
   );
 }
