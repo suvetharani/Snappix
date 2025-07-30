@@ -1,14 +1,11 @@
 import { useState, useEffect, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import Layout from "./Layout";
-import SearchBox from "./SearchBox";
 import axios from "axios";
 import {
   HiOutlineHome,
   HiOutlineMagnifyingGlass,
   HiOutlineGlobeAlt,
   HiOutlineChatBubbleLeftRight,
-  HiOutlinePlusCircle,
   HiOutlineUserCircle,
   HiOutlineUserPlus,
   HiOutlineMoon,
@@ -17,12 +14,10 @@ import {
   HiOutlineXMark
 } from "react-icons/hi2";
 import { BsCameraReels } from "react-icons/bs";
-import ReportModal from "./ReportModal";
-import { FaInstagram, FaPlus } from "react-icons/fa";
+import { FaInstagram} from "react-icons/fa";
 import { UnreadContext } from "../context/UnreadContext";
 
 export default function Sidebar({ isOpen, setIsOpen, onReportOpen }) {
-  const [foundUser, setFoundUser] = useState(null);
   const [showSearch, setShowSearch] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [showMore, setShowMore] = useState(false);
@@ -33,7 +28,6 @@ export default function Sidebar({ isOpen, setIsOpen, onReportOpen }) {
   });
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [isReportOpen, setIsReportOpen] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
 
   // Add state for bottom nav visibility
@@ -282,16 +276,7 @@ const removeRecent = (username) => {
 
 
 
-            <button
-              onClick={() => {
-                setShowCreate(!showCreate);
-                setShowMore(false);
-                setShowSearch(false);
-              }}
-              className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 px-2 py-2 rounded w-full relative"
-            >
-              <HiOutlinePlusCircle className="text-2xl" /> {isOpen && !showSearch && "Create"}
-            </button>
+
 
             <Link
               to="/suggested"
