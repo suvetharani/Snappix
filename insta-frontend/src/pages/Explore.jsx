@@ -215,7 +215,7 @@ export default function Explore() {
   if (loading) return <div className="text-center p-10">Loading...</div>;
 
   return (
-    <div className="max-w-6xl mx-auto p-4 pb-20 bg-white dark:bg-black dark:text-white min-h-screen transition-colors duration-300 w-full min-w-0">
+    <div className="max-w-6xl mx-auto p-4 bg-white dark:bg-black dark:text-white min-h-screen transition-colors duration-300 w-full min-w-0">
       <h1 className="text-2xl font-bold mb-6">Explore</h1>
       <div className="grid grid-cols-3 gap-1 md:gap-2 lg:gap-4">
         {posts.map((post, index) => (
@@ -620,7 +620,7 @@ export default function Explore() {
           <div className="bg-white dark:bg-black dark:text-white rounded shadow-md flex flex-row w-auto max-w-4xl relative overflow-hidden">
             {/* X Close Button */}
             <button
-                  className="absolute top-2 right-2 text-2xl text-white hover:text-gray-300 z-50"
+                  className="absolute top-2 right-2 text-2xl text-black hover:text-gray-300 z-50"
               onClick={() => {
                 setSelectedPost(null);
                 setCurrentIndex(null);

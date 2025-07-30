@@ -82,7 +82,7 @@ profile: post.profilePic
   }, [currentUsername]);
 
   return (
-    <div className="w-full max-w-5xl min-w-[330px] mx-auto pt-8 pb-20 bg-white dark:bg-black dark:text-white min-h-screen transition-colors duration-300">
+    <div className="w-full max-w-5xl min-w-[330px] mx-auto pt-8 pb-20 bg-white dark:bg-black dark:text-white min-h-screen transition-colors duration-300 px-4 md:px-8">
       {/* Top bar for mobile */}
       <div className="flex items-center justify-between px-4 py-2 border-b dark:border-gray-800 tablet:hidden fixed top-0 left-0 w-full bg-white dark:bg-black z-40">
         <span className="font-logo text-2xl">Snappix</span>
@@ -129,7 +129,7 @@ profile: post.profilePic
         <div className="flex-1 min-w-0">
           {/* Stories removed as per request */}
           {posts.length > 0 ? (
-            <div className="grid grid-cols-2 gap-2 md:gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4">
               {posts.map((post) => (
                 <Post
                   key={post._id}
@@ -149,47 +149,6 @@ profile: post.profilePic
             <p className="text-center text-gray-500">No posts found</p>
           )}
         </div>
-        {/* Suggestions Section (Right Side) */}
-        <aside className="hidden tablet:block w-72 flex-shrink-0 mt-16">
-          <div className="bg-white dark:bg-neutral-900 border dark:border-gray-800 rounded shadow p-4">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-semibold">Suggestions For You</h3>
-              <button
-                className="text-xs text-blue-500 font-semibold hover:underline"
-                onClick={() => navigate('/suggested')}
-              >
-                See All
-              </button>
-            </div>
-            <div className="flex flex-col gap-4">
-              {suggestions.slice(0, 6).map((s) => (
-                <div key={s.username} className="flex items-center gap-3">
-                  <Link to={`/profile/${s.username}`} className="flex items-center gap-3 group">
-                    <img src={s.profilePic ? `http://localhost:5000${s.profilePic}` : '/assets/profiles/profile.jpg'} alt={s.username} className="w-10 h-10 rounded-full object-cover border group-hover:opacity-80 transition" />
-                    <span className="text-sm font-semibold group-hover:underline">{s.username}</span>
-                  </Link>
-                  <button
-                    className="text-xs text-blue-500 font-semibold hover:underline"
-                    onClick={async () => {
-                      try {
-                        await axios.post("http://localhost:5000/api/profile/follow", {
-                          username: s.username,
-                          follower: currentUsername,
-                        });
-                        // Remove from suggestions after follow
-                        setSuggestions(prev => prev.filter(u => u.username !== s.username));
-                      } catch (err) {
-                        alert("Failed to follow user");
-                      }
-                    }}
-                  >
-                    Follow
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        </aside>
       </div>
     </div>
   );

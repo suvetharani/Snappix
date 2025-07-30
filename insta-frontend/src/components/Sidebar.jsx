@@ -204,7 +204,7 @@ const removeRecent = (username) => {
         </button>
       )}
       <aside
-        className={`hidden tablet:flex flex-col justify-between h-screen ${showSearch ? 'w-20' : 'w-64'} fixed left-0 top-0 z-50 p-4 border-r bg-white dark:bg-black dark:border-gray-800 dark:text-white transition-all duration-300
+        className={`hidden tablet:flex flex-col justify-between h-screen overflow-y-auto hide-scrollbar ${showSearch ? 'w-20' : 'w-64'} fixed left-0 top-0 z-50 p-4 border-r bg-white dark:bg-black dark:border-gray-800 dark:text-white transition-all duration-300
           ${isOpen ? "translate-x-0" : "-translate-x-full"}`}
         style={{ pointerEvents: "auto" }}
       >
@@ -293,6 +293,12 @@ const removeRecent = (username) => {
               <HiOutlinePlusCircle className="text-2xl" /> {isOpen && !showSearch && "Create"}
             </button>
 
+            <Link
+              to="/suggested"
+              className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 px-2 py-2 rounded w-full"
+            >
+              <HiOutlineUserPlus className="text-2xl" /> {isOpen && !showSearch && "Suggested"}
+            </Link>
             <Link
               to={`/profile/${localStorage.getItem("username")}`}
               className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 px-2 py-2 rounded w-full"

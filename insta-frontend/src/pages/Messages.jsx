@@ -36,7 +36,10 @@ export default function Messages() {
   const socketRef = useRef(null);
   const messagesEndRef = useRef(null);
   const { setUnreadUserCount } = useContext(UnreadContext);
-  const [acceptedCollabs, setAcceptedCollabs] = useState([]); // array of postIds
+  const [acceptedCollabs, setAcceptedCollabs] = useState(() => {
+    const stored = localStorage.getItem("acceptedCollabs");
+    return stored ? JSON.parse(stored) : [];
+  }); // array of postIds
 
   // Update mute state when selectedChat changes
   useEffect(() => {
@@ -199,7 +202,11 @@ export default function Messages() {
         postId: msg.postId,
         username: myUsername
       });
-      setAcceptedCollabs(prev => [...prev, msg.postId]);
+      setAcceptedCollabs(prev => {
+        const updated = [...prev, msg.postId];
+        localStorage.setItem("acceptedCollabs", JSON.stringify(updated));
+        return updated;
+      });
       // Optionally, show a confirmation
     } catch (err) {
       alert('Failed to accept collaboration');

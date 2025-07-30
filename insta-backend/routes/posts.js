@@ -110,9 +110,9 @@ router.get('/:postId/likers', async (req, res) => {
       username: user.username,
       profilePic: user.profilePic
         ? user.profilePic.startsWith('/uploads/')
-          ? `http://localhost:5000${user.profilePic}`
-          : `http://localhost:5000/uploads/${user.profilePic}`
-        : "http://localhost:5000/default-profile.png"
+          ? `http://192.168.96.160:5000${user.profilePic}`
+          : `http://192.168.96.160:5000/uploads/${user.profilePic}`
+        : "http://192.168.96.160:5000/default-profile.png"
     }));
 
     res.json({ likers });
